@@ -1,0 +1,706 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../../models/delivery.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
+
+class DeliveriesPane extends StatefulWidget {
+  const DeliveriesPane({super.key});
+
+  @override
+  State<DeliveriesPane> createState() => _DeliveriesPaneState();
+}
+
+class _DeliveriesPaneState extends State<DeliveriesPane> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _statusFilter = 'ALL';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final dashboardProvider = Provider.of<DashboardProvider>(context);
+    final canDelete = authProvider.canDelete;
+
+    final filteredDeliveries = dashboardProvider.deliveries.where((d) {
+      final matchesQuery = d.pickupAddress.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          d.dropoffAddress.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          d.id.toLowerCase().contains(_searchQuery.toLowerCase());
+      
+      final matchesStatus = _statusFilter == 'ALL' || d.status == _statusFilter;
+
+      return matchesQuery && matchesStatus;
+    }).toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF111122),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.04),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header + Filters + Search
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Deliveries (${filteredDeliveries.length})',
+                style: GoogleFonts.outfit(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              Row(
+                children: [
+                  // Status filter dropdown
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.02),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _statusFilter,
+                        dropdownColor: const Color(0xFF16162E),
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _statusFilter = val;
+                            });
+                          }
+                        },
+                        items: const [
+                          DropdownMenuItem(value: 'ALL', child: Text('All Statuses')),
+                          DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
+                          DropdownMenuItem(value: 'ASSIGNED', child: Text('Assigned')),
+                          DropdownMenuItem(value: 'ACCEPTED', child: Text('Accepted')),
+                          DropdownMenuItem(value: 'PICKED_UP', child: Text('Picked Up')),
+                          DropdownMenuItem(value: 'DELIVERED', child: Text('Delivered')),
+                          DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Search field
+                  SizedBox(
+                    width: 260,
+                    child: TextField(
+                      controller: _searchController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search address or delivery ID...',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
+                        prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 18),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.02),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Deliveries Table Headers
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF16162E),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Pickup Address',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Dropoff Address',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Fee',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Status',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Created At',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: Text(
+                    'Actions',
+                    textAlign: TextAlign.end,
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Deliveries Table Body
+          Expanded(
+            child: filteredDeliveries.isEmpty
+                ? Center(
+                    child: Text(
+                      'No deliveries found matching your search.',
+                      style: GoogleFonts.inter(color: Colors.white.withOpacity(0.4)),
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: filteredDeliveries.length,
+                    separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04), height: 1),
+                    itemBuilder: (context, idx) {
+                      final delivery = filteredDeliveries[idx];
+                      final formattedDate = delivery.createdAt != null
+                          ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!)
+                          : 'N/A';
+
+                      return InkWell(
+                        onTap: () => _showDetailsDialog(context, dashboardProvider, delivery, canDelete),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  delivery.pickupAddress,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  delivery.dropoffAddress,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  'KES ${delivery.deliveryFee.toStringAsFixed(0)}',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: _buildStatusBadge(delivery.status),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  formattedDate,
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white.withOpacity(0.5),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 1,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.info_outline, color: Colors.white70, size: 20),
+                                      tooltip: 'View Logs & Matching Riders',
+                                      onPressed: () => _showDetailsDialog(context, dashboardProvider, delivery, canDelete),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status) {
+    Color color;
+    switch (status) {
+      case 'PENDING':
+        color = const Color(0xFFFF9F43);
+        break;
+      case 'ASSIGNED':
+      case 'ACCEPTED':
+        color = const Color(0xFF00B0FF);
+        break;
+      case 'PICKED_UP':
+        color = const Color(0xFF6C63FF);
+        break;
+      case 'DELIVERED':
+        color = const Color(0xFF10AC84);
+        break;
+      case 'CANCELLED':
+        color = const Color(0xFFFF5252);
+        break;
+      default:
+        color = Colors.grey;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withOpacity(0.2), width: 1),
+          ),
+          child: Text(
+            status,
+            style: GoogleFonts.inter(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showDetailsDialog(
+    BuildContext context,
+    DashboardProvider provider,
+    Delivery delivery,
+    bool canDelete,
+  ) {
+    provider.fetchDeliveryDetails(delivery.id);
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            final freshProvider = Provider.of<DashboardProvider>(context);
+            
+            // Build Status Update inputs
+            String? forcedStatus;
+            final reasonController = TextEditingController();
+
+            return AlertDialog(
+              backgroundColor: const Color(0xFF131326),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: Colors.white.withOpacity(0.06)),
+              ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Delivery Details (ID: ${delivery.id.substring(0, 8)}...)',
+                    style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                  if (canDelete)
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await provider.deleteDelivery(delivery.id);
+                          if (context.mounted) Navigator.of(context).pop();
+                        } catch (_) {}
+                      },
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5252)),
+                      icon: const Icon(Icons.delete, size: 16),
+                      label: const Text('Delete Delivery'),
+                    )
+                  else
+                    const Tooltip(
+                      message: 'Only SUPER_ADMIN can delete deliveries',
+                      child: ElevatedButton(
+                        onPressed: null,
+                        child: Text('Delete Locked'),
+                      ),
+                    ),
+                ],
+              ),
+              content: SizedBox(
+                width: 950,
+                height: 600,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Left Column: Details & Manual Override Status
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16162E),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: ListView(
+                          children: [
+                            Text(
+                              'Info',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildMetaRow('Status', delivery.status),
+                            _buildMetaRow('Merchant ID', delivery.merchantId),
+                            _buildMetaRow('Customer ID', delivery.customerId),
+                            _buildMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
+                            _buildMetaRow('Pickup', delivery.pickupAddress),
+                            _buildMetaRow('Dropoff', delivery.dropoffAddress),
+                            _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(2)}'),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Manual Override Status',
+                              style: GoogleFonts.outfit(
+                                  color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            // Override selector
+                            DropdownButtonFormField<String>(
+                              dropdownColor: const Color(0xFF131326),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Forced Status',
+                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                                ),
+                              ),
+                              items: ['PENDING', 'ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'DELIVERED', 'CANCELLED']
+                                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                                  .toList(),
+                              onChanged: (val) {
+                                forcedStatus = val;
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: reasonController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Reason for status update',
+                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (forcedStatus != null && reasonController.text.isNotEmpty) {
+                                  try {
+                                    await provider.updateDeliveryStatus(
+                                      delivery.id,
+                                      forcedStatus!,
+                                      reasonController.text.trim(),
+                                    );
+                                    // Refresh details dialog log
+                                    provider.fetchDeliveryDetails(delivery.id);
+                                    reasonController.clear();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Delivery status updated successfully')),
+                                    );
+                                  } catch (e) {
+                                    // Error message shown in banner
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6C63FF)),
+                              child: const Text('Update Status'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+
+                    // Right Column: Tabs (Logs, Offers, Dispatch Matches)
+                    Expanded(
+                      flex: 2,
+                      child: DefaultTabController(
+                        length: 3,
+                        child: Column(
+                          children: [
+                            TabBar(
+                              labelColor: const Color(0xFF8C84FF),
+                              unselectedLabelColor: Colors.white.withOpacity(0.5),
+                              indicatorColor: const Color(0xFF6C63FF),
+                              tabs: const [
+                                Tab(text: 'History Logs'),
+                                Tab(text: 'Rider Offers'),
+                                Tab(text: 'Matching Riders (Dispatch)'),
+                              ],
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                children: [
+                                  // Tab 1: History Logs
+                                  _buildHistoryTab(freshProvider.activeHistory),
+                                  // Tab 2: Offers
+                                  _buildOffersTab(freshProvider.activeOffers),
+                                  // Tab 3: Matching / Dispatch
+                                  _buildMatchingTab(
+                                    context,
+                                    freshProvider.activeMatchingRiders,
+                                    provider,
+                                    delivery,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Close', style: GoogleFonts.inter(color: Colors.white38)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMetaRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
+          const SizedBox(height: 2),
+          Text(value, style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryTab(List<dynamic> logs) {
+    if (logs.isEmpty) {
+      return Center(
+          child: Text('No status history logs recorded.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 16),
+      itemCount: logs.length,
+      separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
+      itemBuilder: (context, idx) {
+        final log = logs[idx];
+        final timeStr = log.createdAt != null
+            ? DateFormat('MMM d, yyyy HH:mm').format(log.createdAt)
+            : 'N/A';
+        return ListTile(
+          dense: true,
+          title: Text(log.status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              Text('Reason: ${log.reason ?? 'N/A'}', style: TextStyle(color: Colors.white.withOpacity(0.7))),
+              const SizedBox(height: 2),
+              Text('Changed By User: ${log.changedByUserId ?? 'System'}',
+                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11)),
+            ],
+          ),
+          trailing: Text(timeStr, style: TextStyle(color: Colors.white.withOpacity(0.4))),
+        );
+      },
+    );
+  }
+
+  Widget _buildOffersTab(List<dynamic> offers) {
+    if (offers.isEmpty) {
+      return Center(
+          child: Text('No rider offers dispatched yet.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
+    }
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 16),
+      itemCount: offers.length,
+      separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
+      itemBuilder: (context, idx) {
+        final offer = offers[idx];
+        final expiresStr = offer.expiresAt != null
+            ? DateFormat('HH:mm:ss').format(offer.expiresAt)
+            : 'N/A';
+        return ListTile(
+          dense: true,
+          title: Text('Rider: ${offer.riderId}', style: const TextStyle(color: Colors.white)),
+          subtitle: Text('Expires at: $expiresStr', style: TextStyle(color: Colors.white.withOpacity(0.4))),
+          trailing: _buildOfferStatusBadge(offer.status),
+        );
+      },
+    );
+  }
+
+  Widget _buildOfferStatusBadge(String status) {
+    Color color = Colors.grey;
+    if (status == 'ACCEPTED') color = const Color(0xFF10AC84);
+    if (status == 'REJECTED') color = const Color(0xFFFF5252);
+    if (status == 'EXPIRED') color = const Color(0xFFFF9F43);
+    if (status == 'PENDING') color = const Color(0xFF00B0FF);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        status,
+        style: GoogleFonts.inter(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildMatchingTab(
+    BuildContext context,
+    List<dynamic> riders,
+    DashboardProvider provider,
+    Delivery delivery,
+  ) {
+    if (riders.isEmpty) {
+      return Center(
+          child: Text('No matching riders found in area.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
+    }
+
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        const Text(
+          'Ranked matching riders nearby. Choose a rider to manually dispatch an offer.',
+          style: TextStyle(color: Colors.white70, fontSize: 12),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ListView.separated(
+            itemCount: riders.length,
+            separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
+            itemBuilder: (context, idx) {
+              final rider = riders[idx];
+              return ListTile(
+                dense: true,
+                title: Text('Rider ID: ${rider.riderId}',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: Text(
+                  'Distance: ${rider.distanceKm.toStringAsFixed(2)} km | Score: ${rider.score.toStringAsFixed(2)}',
+                  style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                ),
+                trailing: ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await provider.dispatchOffer(delivery.id, rider.riderId);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Offer dispatched to rider successfully')),
+                      );
+                    } catch (e) {
+                      // Handled by error banner
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10AC84)),
+                  child: const Text('Dispatch Offer', style: TextStyle(fontSize: 11)),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
