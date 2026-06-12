@@ -679,7 +679,18 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
         return ListTile(
           dense: true,
           title: Text('Rider: ${offer.riderId}', style: const TextStyle(color: Colors.white)),
-          subtitle: Text('Expires at: $expiresStr', style: TextStyle(color: Colors.white.withOpacity(0.4))),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 4),
+              SelectableText(
+                'Offer ID: ${offer.id}',
+                style: const TextStyle(color: Color(0xFF8C84FF), fontWeight: FontWeight.bold, fontSize: 11),
+              ),
+              const SizedBox(height: 2),
+              Text('Expires at: $expiresStr', style: TextStyle(color: Colors.white.withOpacity(0.4))),
+            ],
+          ),
           trailing: _buildOfferStatusBadge(offer.status),
         );
       },
