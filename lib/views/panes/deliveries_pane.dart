@@ -108,9 +108,12 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                         items: const [
                           DropdownMenuItem(value: 'ALL', child: Text('All Statuses')),
                           DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
+                          DropdownMenuItem(value: 'SEARCHING', child: Text('Searching')),
                           DropdownMenuItem(value: 'ASSIGNED', child: Text('Assigned')),
                           DropdownMenuItem(value: 'ACCEPTED', child: Text('Accepted')),
+                          DropdownMenuItem(value: 'ARRIVED', child: Text('Arrived')),
                           DropdownMenuItem(value: 'PICKED_UP', child: Text('Picked Up')),
+                          DropdownMenuItem(value: 'IN_TRANSIT', child: Text('In Transit')),
                           DropdownMenuItem(value: 'DELIVERED', child: Text('Delivered')),
                           DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
                         ],
@@ -330,12 +333,21 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
       case 'PENDING':
         color = const Color(0xFFFF9F43);
         break;
+      case 'SEARCHING':
+        color = const Color(0xFFFD79A8);
+        break;
       case 'ASSIGNED':
       case 'ACCEPTED':
         color = const Color(0xFF00B0FF);
         break;
+      case 'ARRIVED':
+        color = const Color(0xFF00D2D3);
+        break;
       case 'PICKED_UP':
         color = const Color(0xFF6C63FF);
+        break;
+      case 'IN_TRANSIT':
+        color = const Color(0xFF54A0FF);
         break;
       case 'DELIVERED':
         color = const Color(0xFF10AC84);
@@ -481,7 +493,17 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                                   borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
                                 ),
                               ),
-                              items: ['PENDING', 'ASSIGNED', 'ACCEPTED', 'PICKED_UP', 'DELIVERED', 'CANCELLED']
+                              items: [
+                                'PENDING',
+                                'SEARCHING',
+                                'ASSIGNED',
+                                'ACCEPTED',
+                                'ARRIVED',
+                                'PICKED_UP',
+                                'IN_TRANSIT',
+                                'DELIVERED',
+                                'CANCELLED'
+                              ]
                                   .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                                   .toList(),
                               onChanged: (val) {
