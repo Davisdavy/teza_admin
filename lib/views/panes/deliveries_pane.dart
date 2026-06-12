@@ -804,6 +804,30 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Quick Select Pickup Preset
+                    DropdownButtonFormField<Map<String, dynamic>>(
+                      dropdownColor: const Color(0xFF16162E),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _inputDecoration('Select Pickup Preset').copyWith(
+                        labelText: 'Quick Select Pickup Landmark',
+                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      ),
+                      items: _nairobiPresets.map((preset) {
+                        return DropdownMenuItem<Map<String, dynamic>>(
+                          value: preset,
+                          child: Text(preset['name'] as String),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          pickupAddressController.text = val['name'] as String;
+                          pickupLatitudeController.text = val['lat'].toString();
+                          pickupLongitudeController.text = val['lng'].toString();
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
                     // Pickup Address
                     Text('Pickup Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 8),
@@ -860,6 +884,30 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Quick Select Dropoff Preset
+                    DropdownButtonFormField<Map<String, dynamic>>(
+                      dropdownColor: const Color(0xFF16162E),
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: _inputDecoration('Select Dropoff Preset').copyWith(
+                        labelText: 'Quick Select Dropoff Landmark',
+                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                      ),
+                      items: _nairobiPresets.map((preset) {
+                        return DropdownMenuItem<Map<String, dynamic>>(
+                          value: preset,
+                          child: Text(preset['name'] as String),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          dropoffAddressController.text = val['name'] as String;
+                          dropoffLatitudeController.text = val['lat'].toString();
+                          dropoffLongitudeController.text = val['lng'].toString();
+                        }
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -1014,3 +1062,15 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     );
   }
 }
+
+const List<Map<String, dynamic>> _nairobiPresets = [
+  {"name": "Nairobi CBD (General)", "lat": -1.2921, "lng": 36.8219},
+  {"name": "Westlands (Sarit Centre)", "lat": -1.2628, "lng": 36.8041},
+  {"name": "Kilimani (Yaya Centre)", "lat": -1.2913, "lng": 36.7979},
+  {"name": "Karen (The Hub)", "lat": -1.3195, "lng": 36.7061},
+  {"name": "Gigiri (Village Market)", "lat": -1.2294, "lng": 36.8048},
+  {"name": "Mombasa Road (JKIA)", "lat": -1.3323, "lng": 36.9211},
+  {"name": "Thika Road (Garden City)", "lat": -1.2227, "lng": 36.8837},
+  {"name": "Wangige Market", "lat": -1.2612, "lng": 36.7410},
+  {"name": "Mwimuto Shopping Center", "lat": -1.2543, "lng": 36.7582},
+];
