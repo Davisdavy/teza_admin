@@ -774,30 +774,32 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                   'Distance: ${rider.distanceKm.toStringAsFixed(2)} km | Score: ${rider.score.toStringAsFixed(2)}',
                   style: TextStyle(color: Colors.white.withOpacity(0.6)),
                 ),
-                trailing: ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await provider.dispatchOffer(delivery.id, rider.riderId);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Offer dispatched to rider successfully')),
-                      );
-                    } catch (e) {
-                      // Handled by error banner
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10AC84),
-                    foregroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    'Dispatch Offer',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                trailing: delivery.status == 'DELIVERED'
+                    ? null
+                    : ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            await provider.dispatchOffer(delivery.id, rider.riderId);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Offer dispatched to rider successfully')),
+                            );
+                          } catch (e) {
+                            // Handled by error banner
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF10AC84),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: Text(
+                          'Dispatch Offer',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
               );
             },
           ),

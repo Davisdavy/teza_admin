@@ -26,7 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.didChangeDependencies();
     if (_isInit) {
       // Fetch data initially on load
-      Provider.of<DashboardProvider>(context, listen: false).fetchAllData();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<DashboardProvider>(context, listen: false).fetchAllData();
+      });
       _isInit = false;
     }
   }
