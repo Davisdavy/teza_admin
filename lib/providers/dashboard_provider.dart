@@ -171,6 +171,34 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> createDelivery({
+    required String pickupAddress,
+    required double pickupLatitude,
+    required double pickupLongitude,
+    required String dropoffAddress,
+    required double dropoffLatitude,
+    required double dropoffLongitude,
+    required double deliveryFee,
+  }) async {
+    try {
+      final newDelivery = await _apiService.createDelivery(
+        pickupAddress: pickupAddress,
+        pickupLatitude: pickupLatitude,
+        pickupLongitude: pickupLongitude,
+        dropoffAddress: dropoffAddress,
+        dropoffLatitude: dropoffLatitude,
+        dropoffLongitude: dropoffLongitude,
+        deliveryFee: deliveryFee,
+      );
+      _deliveries.insert(0, newDelivery);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   Future<void> deleteDelivery(String id) async {
     try {
       await _apiService.deleteDelivery(id);

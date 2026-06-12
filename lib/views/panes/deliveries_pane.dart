@@ -57,13 +57,31 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Deliveries (${filteredDeliveries.length})',
-                style: GoogleFonts.outfit(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+              Row(
+                children: [
+                  Text(
+                    'Deliveries (${filteredDeliveries.length})',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => _showCreateDeliveryDialog(context, dashboardProvider),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Create Delivery', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6C63FF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               Row(
                 children: [
@@ -701,6 +719,239 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showCreateDeliveryDialog(BuildContext context, DashboardProvider provider) {
+    final formKey = GlobalKey<FormState>();
+    final pickupAddressController = TextEditingController();
+    final pickupLatitudeController = TextEditingController();
+    final pickupLongitudeController = TextEditingController();
+    final dropoffAddressController = TextEditingController();
+    final dropoffLatitudeController = TextEditingController();
+    final dropoffLongitudeController = TextEditingController();
+    final deliveryFeeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF131326),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.white.withOpacity(0.06)),
+          ),
+          title: Text(
+            'Create New Delivery Order',
+            style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+          content: SizedBox(
+            width: 600,
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Pickup Address
+                    Text('Pickup Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: pickupAddressController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _inputDecoration('e.g. Mwimuto Shopping Center'),
+                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Pickup Coordinates
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Pickup Latitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: pickupLatitudeController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('-1.2543'),
+                                validator: (val) {
+                                  if (val == null || val.isEmpty) return 'Required';
+                                  final num = double.tryParse(val);
+                                  if (num == null || num < -90.0 || num > 90.0) return 'Invalid (-90 to 90)';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Pickup Longitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: pickupLongitudeController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('36.7582'),
+                                validator: (val) {
+                                  if (val == null || val.isEmpty) return 'Required';
+                                  final num = double.tryParse(val);
+                                  if (num == null || num < -180.0 || num > 180.0) return 'Invalid (-180 to 180)';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dropoff Address
+                    Text('Dropoff Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: dropoffAddressController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _inputDecoration('e.g. Wangige Market'),
+                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Dropoff Coordinates
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Dropoff Latitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: dropoffLatitudeController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('-1.2612'),
+                                validator: (val) {
+                                  if (val == null || val.isEmpty) return 'Required';
+                                  final num = double.tryParse(val);
+                                  if (num == null || num < -90.0 || num > 90.0) return 'Invalid (-90 to 90)';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Dropoff Longitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                              const SizedBox(height: 8),
+                              TextFormField(
+                                controller: dropoffLongitudeController,
+                                style: const TextStyle(color: Colors.white),
+                                decoration: _inputDecoration('36.7410'),
+                                validator: (val) {
+                                  if (val == null || val.isEmpty) return 'Required';
+                                  final num = double.tryParse(val);
+                                  if (num == null || num < -180.0 || num > 180.0) return 'Invalid (-180 to 180)';
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Delivery Fee
+                    Text('Delivery Fee (KES)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: deliveryFeeController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: _inputDecoration('150'),
+                      validator: (val) {
+                        if (val == null || val.isEmpty) return 'Required';
+                        final num = double.tryParse(val);
+                        if (num == null || num < 0.0) return 'Must be positive';
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white38)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  try {
+                    await provider.createDelivery(
+                      pickupAddress: pickupAddressController.text.trim(),
+                      pickupLatitude: double.parse(pickupLatitudeController.text),
+                      pickupLongitude: double.parse(pickupLongitudeController.text),
+                      dropoffAddress: dropoffAddressController.text.trim(),
+                      dropoffLatitude: double.parse(dropoffLatitudeController.text),
+                      dropoffLongitude: double.parse(dropoffLongitudeController.text),
+                      deliveryFee: double.parse(deliveryFeeController.text),
+                    );
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Delivery order created successfully')),
+                      );
+                    }
+                  } catch (e) {
+                    // Handled by error banner
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6C63FF)),
+              child: const Text('Create Order'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+      filled: true,
+      fillColor: Colors.white.withOpacity(0.02),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFFF5252)),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFFF5252)),
+      ),
     );
   }
 }

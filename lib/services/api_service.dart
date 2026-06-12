@@ -165,6 +165,37 @@ class ApiService {
 
   // --- Deliveries Endpoints ---
 
+  Future<Delivery> createDelivery({
+    required String pickupAddress,
+    required double pickupLatitude,
+    required double pickupLongitude,
+    required String dropoffAddress,
+    required double dropoffLatitude,
+    required double dropoffLongitude,
+    required double deliveryFee,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/delivery');
+    final response = await http.post(
+      url,
+      headers: _headers(),
+      body: jsonEncode({
+        'pickupAddress': pickupAddress,
+        'pickupLatitude': pickupLatitude,
+        'pickupLongitude': pickupLongitude,
+        'dropoffAddress': dropoffAddress,
+        'dropoffLatitude': dropoffLatitude,
+        'dropoffLongitude': dropoffLongitude,
+        'deliveryFee': deliveryFee,
+      }),
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return Delivery.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
   Future<List<Delivery>> getDeliveries() async {
     final url = Uri.parse('$baseUrl/api/delivery');
     final response = await http.get(url, headers: _headers());
