@@ -414,8 +414,15 @@ class _UsersPaneState extends State<UsersPane> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6C63FF),
+                    foregroundColor: Colors.white,
                   ),
-                  child: const Text('Save Changes'),
+                  child: Text(
+                    'Save Changes',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             );
@@ -459,8 +466,15 @@ class _UsersPaneState extends State<UsersPane> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF5252),
+                foregroundColor: Colors.white,
               ),
-              child: const Text('Confirm Delete'),
+              child: Text(
+                'Confirm Delete',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );

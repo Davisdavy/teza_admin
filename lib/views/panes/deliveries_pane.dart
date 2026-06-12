@@ -410,9 +410,18 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                           if (context.mounted) Navigator.of(context).pop();
                         } catch (_) {}
                       },
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5252)),
-                      icon: const Icon(Icons.delete, size: 16),
-                      label: const Text('Delete Delivery'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF5252),
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.delete, size: 16, color: Colors.white),
+                      label: Text(
+                        'Delete Delivery',
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     )
                   else
                     const Tooltip(
@@ -512,8 +521,17 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                                   }
                                 }
                               },
-                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6C63FF)),
-                              child: const Text('Update Status'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF6C63FF),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text(
+                                'Update Status',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -711,8 +729,18 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                       // Handled by error banner
                     }
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF10AC84)),
-                  child: const Text('Dispatch Offer', style: TextStyle(fontSize: 11)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10AC84),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Dispatch Offer',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               );
             },
@@ -920,8 +948,17 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                   }
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6C63FF)),
-              child: const Text('Create Order'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6C63FF),
+                foregroundColor: Colors.white,
+              ),
+              child: Text(
+                'Create Order',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );

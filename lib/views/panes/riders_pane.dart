@@ -385,8 +385,15 @@ class _RidersPaneState extends State<RidersPane> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF5252),
+                foregroundColor: Colors.white,
               ),
-              child: const Text('Confirm Delete'),
+              child: Text(
+                'Confirm Delete',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         );
