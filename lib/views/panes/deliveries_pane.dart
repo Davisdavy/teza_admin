@@ -468,10 +468,11 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                                   color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 12),
+                            _buildSelectableMetaRow('Delivery ID', delivery.id),
                             _buildMetaRow('Status', delivery.status),
-                            _buildMetaRow('Merchant ID', delivery.merchantId),
-                            _buildMetaRow('Customer ID', delivery.customerId),
-                            _buildMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
+                            _buildSelectableMetaRow('Merchant ID', delivery.merchantId),
+                            _buildSelectableMetaRow('Customer ID', delivery.customerId),
+                            _buildSelectableMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
                             _buildMetaRow('Pickup', delivery.pickupAddress),
                             _buildMetaRow('Dropoff', delivery.dropoffAddress),
                             _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(2)}'),
@@ -624,6 +625,28 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
           Text(label, style: GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
           const SizedBox(height: 2),
           Text(value, style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectableMetaRow(String label, String value) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
+          const SizedBox(height: 2),
+          SelectableText(
+            value,
+            style: GoogleFonts.inter(
+              color: const Color(0xFF8C84FF),
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );
