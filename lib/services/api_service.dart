@@ -278,6 +278,7 @@ class ApiService {
       headers: _headers(),
       body: jsonEncode({
         'riderId': riderId,
+        'durationSeconds': 60,
       }),
     );
 
