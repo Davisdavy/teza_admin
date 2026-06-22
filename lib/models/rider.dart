@@ -7,6 +7,7 @@ class RiderProfile {
   final String onboardingStatus;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int totalDeliveries;
 
   RiderProfile({
     required this.id,
@@ -17,6 +18,7 @@ class RiderProfile {
     required this.onboardingStatus,
     this.createdAt,
     this.updatedAt,
+    required this.totalDeliveries,
   });
 
   factory RiderProfile.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class RiderProfile {
       onboardingStatus: json['onboardingStatus'] ?? 'PENDING',
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
       updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      totalDeliveries: json['totalDeliveries'] ?? 0,
     );
   }
 
@@ -42,6 +45,7 @@ class RiderProfile {
       'onboardingStatus': onboardingStatus,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'totalDeliveries': totalDeliveries,
     };
   }
 }

@@ -164,6 +164,17 @@ class _RidersPaneState extends State<RidersPane> {
                   ),
                 ),
                 Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Deliveries Made',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                Expanded(
                   flex: 1,
                   child: Text(
                     'Duty State',
@@ -238,6 +249,17 @@ class _RidersPaneState extends State<RidersPane> {
                                 style: GoogleFonts.inter(
                                   color: Colors.white.withOpacity(0.7),
                                   fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                rider.totalDeliveries.toString(),
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
