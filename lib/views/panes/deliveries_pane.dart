@@ -29,6 +29,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     final authProvider = Provider.of<AuthProvider>(context);
     final dashboardProvider = Provider.of<DashboardProvider>(context);
     final canDelete = authProvider.canDelete;
+    final isMobile = MediaQuery.of(context).size.width < 800;
 
     final filteredDeliveries = dashboardProvider.deliveries.where((d) {
       final matchesQuery = d.pickupAddress.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -49,193 +50,303 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
           width: 1,
         ),
       ),
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 12 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Header + Filters + Search
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Deliveries (${filteredDeliveries.length})',
-                    style: GoogleFonts.outfit(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => _showCreateDeliveryDialog(context, dashboardProvider),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Create Delivery', style: TextStyle(fontSize: 12)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+          if (isMobile)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Deliveries (${filteredDeliveries.length})',
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  // Status filter dropdown
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.02),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    ElevatedButton.icon(
+                      onPressed: () => _showCreateDeliveryDialog(context, dashboardProvider),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Create Delivery', style: TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6C63FF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _statusFilter,
-                        dropdownColor: const Color(0xFF16162E),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.02),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _statusFilter,
+                            isExpanded: true,
+                            dropdownColor: const Color(0xFF16162E),
+                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                            onChanged: (val) {
+                              if (val != null) {
+                                  setState(() {
+                                    _statusFilter = val;
+                                  });
+                              }
+                            },
+                            items: const [
+                              DropdownMenuItem(value: 'ALL', child: Text('All Statuses')),
+                              DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
+                              DropdownMenuItem(value: 'SEARCHING', child: Text('Searching')),
+                              DropdownMenuItem(value: 'ASSIGNED', child: Text('Assigned')),
+                              DropdownMenuItem(value: 'ACCEPTED', child: Text('Accepted')),
+                              DropdownMenuItem(value: 'ARRIVED', child: Text('Arrived')),
+                              DropdownMenuItem(value: 'PICKED_UP', child: Text('Picked Up')),
+                              DropdownMenuItem(value: 'IN_TRANSIT', child: Text('In Transit')),
+                              DropdownMenuItem(value: 'DELIVERED', child: Text('Delivered')),
+                              DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        controller: _searchController,
+                        style: const TextStyle(color: Colors.white, fontSize: 12),
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search address...',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 12),
+                          prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 16),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.02),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Deliveries (${filteredDeliveries.length})',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => _showCreateDeliveryDialog(context, dashboardProvider),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Create Delivery', style: TextStyle(fontSize: 12)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6C63FF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    // Status filter dropdown
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.02),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _statusFilter,
+                          dropdownColor: const Color(0xFF16162E),
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _statusFilter = val;
+                              });
+                            }
+                          },
+                          items: const [
+                            DropdownMenuItem(value: 'ALL', child: Text('All Statuses')),
+                            DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
+                            DropdownMenuItem(value: 'SEARCHING', child: Text('Searching')),
+                            DropdownMenuItem(value: 'ASSIGNED', child: Text('Assigned')),
+                            DropdownMenuItem(value: 'ACCEPTED', child: Text('Accepted')),
+                            DropdownMenuItem(value: 'ARRIVED', child: Text('Arrived')),
+                            DropdownMenuItem(value: 'PICKED_UP', child: Text('Picked Up')),
+                            DropdownMenuItem(value: 'IN_TRANSIT', child: Text('In Transit')),
+                            DropdownMenuItem(value: 'DELIVERED', child: Text('Delivered')),
+                            DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Search field
+                    SizedBox(
+                      width: 260,
+                      child: TextField(
+                        controller: _searchController,
                         style: const TextStyle(color: Colors.white, fontSize: 13),
                         onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              _statusFilter = val;
-                            });
-                          }
+                          setState(() {
+                            _searchQuery = val;
+                          });
                         },
-                        items: const [
-                          DropdownMenuItem(value: 'ALL', child: Text('All Statuses')),
-                          DropdownMenuItem(value: 'PENDING', child: Text('Pending')),
-                          DropdownMenuItem(value: 'SEARCHING', child: Text('Searching')),
-                          DropdownMenuItem(value: 'ASSIGNED', child: Text('Assigned')),
-                          DropdownMenuItem(value: 'ACCEPTED', child: Text('Accepted')),
-                          DropdownMenuItem(value: 'ARRIVED', child: Text('Arrived')),
-                          DropdownMenuItem(value: 'PICKED_UP', child: Text('Picked Up')),
-                          DropdownMenuItem(value: 'IN_TRANSIT', child: Text('In Transit')),
-                          DropdownMenuItem(value: 'DELIVERED', child: Text('Delivered')),
-                          DropdownMenuItem(value: 'CANCELLED', child: Text('Cancelled')),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  // Search field
-                  SizedBox(
-                    width: 260,
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      onChanged: (val) {
-                        setState(() {
-                          _searchQuery = val;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search address or delivery ID...',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
-                        prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 18),
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.02),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                        decoration: InputDecoration(
+                          hintText: 'Search address or delivery ID...',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
+                          prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 18),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.02),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Deliveries Table Headers
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF16162E),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Pickup Address',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'Dropoff Address',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Fee',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Status',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Text(
-                    'Created At',
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Text(
-                    'Actions',
-                    textAlign: TextAlign.end,
-                    style: GoogleFonts.inter(
-                      color: Colors.white.withOpacity(0.5),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobile ? 12 : 24),
+
+          // Deliveries Table Headers (Desktop only)
+          if (!isMobile) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFF16162E),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      'Pickup Address',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      'Dropoff Address',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Fee',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'Status',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Text(
+                      'Created At',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Text(
+                      'Actions',
+                      textAlign: TextAlign.end,
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
 
           // Deliveries Table Body
           Expanded(
@@ -251,6 +362,11 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                     separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04), height: 1),
                     itemBuilder: (context, idx) {
                       final delivery = filteredDeliveries[idx];
+
+                      if (isMobile) {
+                        return _buildMobileDeliveryCard(context, dashboardProvider, delivery, canDelete);
+                      }
+
                       final formattedDate = delivery.createdAt != null
                           ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!)
                           : 'N/A';
@@ -382,6 +498,95 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     );
   }
 
+  Widget _buildMobileDeliveryCard(BuildContext context, DashboardProvider provider, Delivery delivery, bool canDelete) {
+    final formattedDate = delivery.createdAt != null
+        ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!)
+        : 'N/A';
+    return Card(
+      color: const Color(0xFF16162E),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.white.withOpacity(0.06)),
+      ),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () => _showDetailsDialog(context, provider, delivery, canDelete),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'ID: ${delivery.id.substring(0, 8)}...',
+                    style: GoogleFonts.inter(
+                      color: const Color(0xFF8C84FF),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                  _buildStatusBadge(delivery.status),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.circle, size: 10, color: Colors.greenAccent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      delivery.pickupAddress,
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on, size: 12, color: Colors.redAccent),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      delivery.dropoffAddress,
+                      style: GoogleFonts.inter(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(color: Colors.white10, height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'KES ${delivery.deliveryFee.toStringAsFixed(0)}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showDetailsDialog(
     BuildContext context,
     DashboardProvider provider,
@@ -396,10 +601,244 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             final freshProvider = Provider.of<DashboardProvider>(context);
+            final auth = Provider.of<AuthProvider>(context, listen: false);
+            final isMerchant = auth.isMerchant;
+            final isMobile = MediaQuery.of(context).size.width < 800;
             
             // Build Status Update inputs
             String? forcedStatus;
             final reasonController = TextEditingController();
+
+            final detailsContent = ListView(
+              shrinkWrap: isMobile,
+              children: [
+                // Info Section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF16162E),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Info',
+                        style: GoogleFonts.outfit(
+                            color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildSelectableMetaRow('Delivery ID', delivery.id),
+                      _buildMetaRow('Status', delivery.status),
+                      _buildSelectableMetaRow('Merchant ID', delivery.merchantId),
+                      _buildSelectableMetaRow('Customer ID', delivery.customerId),
+                      _buildSelectableMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
+                      _buildMetaRow('Pickup', delivery.pickupAddress),
+                      _buildMetaRow('Dropoff', delivery.dropoffAddress),
+                      _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(2)}'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Action Panel
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF16162E),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (isMerchant) ...[
+                        Text(
+                          'Merchant Controls',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        if (delivery.status == 'PENDING') ...[
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              try {
+                                await provider.updateDeliveryStatus(
+                                  delivery.id,
+                                  'SEARCHING',
+                                  'Merchant published order to search',
+                                );
+                                provider.fetchDeliveryDetails(delivery.id);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Delivery published to nearby riders')),
+                                  );
+                                }
+                              } catch (_) {}
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF6C63FF),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            icon: const Icon(Icons.flash_on),
+                            label: const Text('Publish / Search Riders'),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (delivery.status != 'DELIVERED' && delivery.status != 'CANCELLED') ...[
+                          ElevatedButton.icon(
+                            onPressed: () async {
+                              try {
+                                await provider.updateDeliveryStatus(
+                                  delivery.id,
+                                  'CANCELLED',
+                                  'Cancelled by merchant',
+                                );
+                                provider.fetchDeliveryDetails(delivery.id);
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Delivery cancelled successfully')),
+                                  );
+                                }
+                              } catch (_) {}
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF5252),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                            icon: const Icon(Icons.cancel_outlined),
+                            label: const Text('Cancel Order'),
+                          ),
+                        ] else ...[
+                          Text(
+                            delivery.status == 'DELIVERED'
+                                ? 'Order has been delivered.'
+                                : 'Order has been cancelled.',
+                            style: GoogleFonts.inter(color: Colors.white60, fontSize: 13),
+                            textAlign: TextAlign.center,
+                          ),
+                        ]
+                      ] else ...[
+                        Text(
+                          'Manual Override Status',
+                          style: GoogleFonts.outfit(
+                              color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          dropdownColor: const Color(0xFF131326),
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Forced Status',
+                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                            ),
+                          ),
+                          items: [
+                            'PENDING',
+                            'SEARCHING',
+                            'ASSIGNED',
+                            'ACCEPTED',
+                            'ARRIVED',
+                            'PICKED_UP',
+                            'IN_TRANSIT',
+                            'DELIVERED',
+                            'CANCELLED'
+                          ]
+                              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                              .toList(),
+                          onChanged: (val) {
+                            forcedStatus = val;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: reasonController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Reason for status update',
+                            labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (forcedStatus != null && reasonController.text.isNotEmpty) {
+                              try {
+                                await provider.updateDeliveryStatus(
+                                  delivery.id,
+                                  forcedStatus!,
+                                  reasonController.text.trim(),
+                                );
+                                provider.fetchDeliveryDetails(delivery.id);
+                                reasonController.clear();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Delivery status updated successfully')),
+                                );
+                              } catch (e) {}
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6C63FF),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: Text(
+                            'Update Status',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (isMobile) ...[
+                  const SizedBox(height: 16),
+                  ExpansionTile(
+                    title: Text(
+                      'History Logs',
+                      style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    children: [
+                      _buildHistoryTab(freshProvider.activeHistory, shrinkWrap: true),
+                    ],
+                  ),
+                  if (!isMerchant) ...[
+                    ExpansionTile(
+                      title: Text(
+                        'Rider Offers',
+                        style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      children: [
+                        _buildOffersTab(freshProvider.activeOffers, shrinkWrap: true),
+                      ],
+                    ),
+                    ExpansionTile(
+                      title: Text(
+                        'Matching Riders',
+                        style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      children: [
+                        _buildMatchingTab(
+                          context,
+                          freshProvider.activeMatchingRiders,
+                          provider,
+                          delivery,
+                          shrinkWrap: true,
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ],
+            );
 
             return AlertDialog(
               backgroundColor: const Color(0xFF131326),
@@ -410,9 +849,12 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Delivery Details (ID: ${delivery.id.substring(0, 8)}...)',
-                    style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Text(
+                      'Details (ID: ${delivery.id.substring(0, 8)}...)',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16),
+                    ),
                   ),
                   if (canDelete)
                     ElevatedButton.icon(
@@ -425,183 +867,86 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF5252),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      icon: const Icon(Icons.delete, size: 16, color: Colors.white),
+                      icon: const Icon(Icons.delete, size: 14, color: Colors.white),
                       label: Text(
-                        'Delete Delivery',
+                        'Delete',
                         style: GoogleFonts.inter(
                           color: Colors.white,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     )
-                  else
+                  else if (!isMerchant)
                     const Tooltip(
                       message: 'Only SUPER_ADMIN can delete deliveries',
                       child: ElevatedButton(
                         onPressed: null,
-                        child: Text('Delete Locked'),
+                        child: Text('Delete Locked', style: TextStyle(fontSize: 11)),
                       ),
                     ),
                 ],
               ),
               content: SizedBox(
-                width: 950,
-                height: 600,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Left Column: Details & Manual Override Status
-                    Expanded(
-                      flex: 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF16162E),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ListView(
-                          children: [
-                            Text(
-                              'Info',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildSelectableMetaRow('Delivery ID', delivery.id),
-                            _buildMetaRow('Status', delivery.status),
-                            _buildSelectableMetaRow('Merchant ID', delivery.merchantId),
-                            _buildSelectableMetaRow('Customer ID', delivery.customerId),
-                            _buildSelectableMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
-                            _buildMetaRow('Pickup', delivery.pickupAddress),
-                            _buildMetaRow('Dropoff', delivery.dropoffAddress),
-                            _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(2)}'),
-                            const SizedBox(height: 24),
-                            Text(
-                              'Manual Override Status',
-                              style: GoogleFonts.outfit(
-                                  color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            // Override selector
-                            DropdownButtonFormField<String>(
-                              dropdownColor: const Color(0xFF131326),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                labelText: 'Forced Status',
-                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
-                                ),
-                              ),
-                              items: [
-                                'PENDING',
-                                'SEARCHING',
-                                'ASSIGNED',
-                                'ACCEPTED',
-                                'ARRIVED',
-                                'PICKED_UP',
-                                'IN_TRANSIT',
-                                'DELIVERED',
-                                'CANCELLED'
-                              ]
-                                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                                  .toList(),
-                              onChanged: (val) {
-                                forcedStatus = val;
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: reasonController,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                labelText: 'Reason for status update',
-                                labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            ElevatedButton(
-                              onPressed: () async {
-                                if (forcedStatus != null && reasonController.text.isNotEmpty) {
-                                  try {
-                                    await provider.updateDeliveryStatus(
-                                      delivery.id,
-                                      forcedStatus!,
-                                      reasonController.text.trim(),
-                                    );
-                                    // Refresh details dialog log
-                                    provider.fetchDeliveryDetails(delivery.id);
-                                    reasonController.clear();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Delivery status updated successfully')),
-                                    );
-                                  } catch (e) {
-                                    // Error message shown in banner
-                                  }
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF6C63FF),
-                                foregroundColor: Colors.white,
-                              ),
-                              child: Text(
-                                'Update Status',
-                                style: GoogleFonts.inter(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20),
+                width: isMobile ? double.maxFinite : 950,
+                height: isMobile ? MediaQuery.of(context).size.height * 0.8 : 600,
+                child: isMobile
+                    ? detailsContent
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Left Column
+                          Expanded(
+                            flex: 1,
+                            child: detailsContent,
+                          ),
+                          const SizedBox(width: 20),
 
-                    // Right Column: Tabs (Logs, Offers, Dispatch Matches)
-                    Expanded(
-                      flex: 2,
-                      child: DefaultTabController(
-                        length: 3,
-                        child: Column(
-                          children: [
-                            TabBar(
-                              labelColor: const Color(0xFF8C84FF),
-                              unselectedLabelColor: Colors.white.withOpacity(0.5),
-                              indicatorColor: const Color(0xFF6C63FF),
-                              tabs: const [
-                                Tab(text: 'History Logs'),
-                                Tab(text: 'Rider Offers'),
-                                Tab(text: 'Matching Riders (Dispatch)'),
-                              ],
-                            ),
-                            Expanded(
-                              child: TabBarView(
+                          // Right Column: Tabs (Logs, Offers, Dispatch Matches)
+                          Expanded(
+                            flex: 2,
+                            child: DefaultTabController(
+                              length: isMerchant ? 1 : 3,
+                              child: Column(
                                 children: [
-                                  // Tab 1: History Logs
-                                  _buildHistoryTab(freshProvider.activeHistory),
-                                  // Tab 2: Offers
-                                  _buildOffersTab(freshProvider.activeOffers),
-                                  // Tab 3: Matching / Dispatch
-                                  _buildMatchingTab(
-                                    context,
-                                    freshProvider.activeMatchingRiders,
-                                    provider,
-                                    delivery,
+                                  TabBar(
+                                    labelColor: const Color(0xFF8C84FF),
+                                    unselectedLabelColor: Colors.white.withOpacity(0.5),
+                                    indicatorColor: const Color(0xFF6C63FF),
+                                    tabs: [
+                                      const Tab(text: 'History Logs'),
+                                      if (!isMerchant) ...[
+                                        const Tab(text: 'Rider Offers'),
+                                        const Tab(text: 'Matching Riders (Dispatch)'),
+                                      ],
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: [
+                                        // Tab 1: History Logs
+                                        _buildHistoryTab(freshProvider.activeHistory),
+                                        // Tab 2 & 3: Admin only
+                                        if (!isMerchant) ...[
+                                          _buildOffersTab(freshProvider.activeOffers),
+                                          _buildMatchingTab(
+                                            context,
+                                            freshProvider.activeMatchingRiders,
+                                            provider,
+                                            delivery,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
               ),
               actions: [
                 TextButton(
@@ -652,12 +997,14 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     );
   }
 
-  Widget _buildHistoryTab(List<dynamic> logs) {
+  Widget _buildHistoryTab(List<dynamic> logs, {bool shrinkWrap = false}) {
     if (logs.isEmpty) {
       return Center(
           child: Text('No status history logs recorded.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
     }
     return ListView.separated(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       padding: const EdgeInsets.only(top: 16),
       itemCount: logs.length,
       separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
@@ -685,12 +1032,14 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     );
   }
 
-  Widget _buildOffersTab(List<dynamic> offers) {
+  Widget _buildOffersTab(List<dynamic> offers, {bool shrinkWrap = false}) {
     if (offers.isEmpty) {
       return Center(
           child: Text('No rider offers dispatched yet.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
     }
     return ListView.separated(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       padding: const EdgeInsets.only(top: 16),
       itemCount: offers.length,
       separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
@@ -744,14 +1093,61 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     BuildContext context,
     List<dynamic> riders,
     DashboardProvider provider,
-    Delivery delivery,
-  ) {
+    Delivery delivery, {
+    bool shrinkWrap = false,
+  }) {
     if (riders.isEmpty) {
       return Center(
           child: Text('No matching riders found in area.', style: TextStyle(color: Colors.white.withOpacity(0.3))));
     }
 
+    final list = ListView.separated(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
+      itemCount: riders.length,
+      separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
+      itemBuilder: (context, idx) {
+        final rider = riders[idx];
+        return ListTile(
+          dense: true,
+          title: Text('Rider ID: ${rider.riderId}',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          subtitle: Text(
+            'Distance: ${rider.distanceKm.toStringAsFixed(2)} km | Score: ${rider.score.toStringAsFixed(2)}',
+            style: TextStyle(color: Colors.white.withOpacity(0.6)),
+          ),
+          trailing: delivery.status == 'DELIVERED'
+              ? null
+              : ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await provider.dispatchOffer(delivery.id, rider.riderId);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Offer dispatched to rider successfully')),
+                      );
+                    } catch (e) {
+                      // Handled by error banner
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF10AC84),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Dispatch Offer',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+        );
+      },
+    );
+
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 12),
         const Text(
@@ -760,50 +1156,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 12),
-        Expanded(
-          child: ListView.separated(
-            itemCount: riders.length,
-            separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.04)),
-            itemBuilder: (context, idx) {
-              final rider = riders[idx];
-              return ListTile(
-                dense: true,
-                title: Text('Rider ID: ${rider.riderId}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text(
-                  'Distance: ${rider.distanceKm.toStringAsFixed(2)} km | Score: ${rider.score.toStringAsFixed(2)}',
-                  style: TextStyle(color: Colors.white.withOpacity(0.6)),
-                ),
-                trailing: delivery.status == 'DELIVERED'
-                    ? null
-                    : ElevatedButton(
-                        onPressed: () async {
-                          try {
-                            await provider.dispatchOffer(delivery.id, rider.riderId);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Offer dispatched to rider successfully')),
-                            );
-                          } catch (e) {
-                            // Handled by error banner
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF10AC84),
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text(
-                          'Dispatch Offer',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-              );
-            },
-          ),
-        ),
+        if (shrinkWrap) list else Expanded(child: list),
       ],
     );
   }

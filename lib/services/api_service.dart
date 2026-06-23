@@ -208,6 +208,18 @@ class ApiService {
     }
   }
 
+  Future<List<Delivery>> getMerchantDeliveries() async {
+    final url = Uri.parse('$baseUrl/api/delivery/merchant');
+    final response = await http.get(url, headers: _headers());
+
+    if (response.statusCode == 200) {
+      final List<dynamic> list = jsonDecode(response.body);
+      return list.map((e) => Delivery.fromJson(e)).toList();
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
   Future<Delivery> updateDeliveryStatus(String id, String status, String reason) async {
     final url = Uri.parse('$baseUrl/api/delivery/$id/status');
     final response = await http.put(

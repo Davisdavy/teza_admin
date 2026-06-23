@@ -1,11 +1,11 @@
 {
-    "name": "teza_admin",
-    "short_name": "teza_admin",
+    "name": "Teza Delivery",
+    "short_name": "Teza",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0A0A12",
+    "theme_color": "#6C63FF",
+    "description": "Create and dispatch delivery orders seamlessly with Teza Delivery.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

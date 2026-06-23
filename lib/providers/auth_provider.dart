@@ -20,7 +20,9 @@ class AuthProvider extends ChangeNotifier {
 
   bool get isSuperAdmin => _currentUser?.role == 'SUPER_ADMIN';
   bool get isSupportAdmin => _currentUser?.role == 'SUPPORT_ADMIN';
+  bool get isMerchant => _currentUser?.role == 'MERCHANT';
   bool get isAdmin => isSuperAdmin || isSupportAdmin;
+  bool get isAuthorized => isAdmin || isMerchant;
   bool get canDelete => isSuperAdmin; // SUPPORT_ADMIN cannot delete
 
   Future<bool> login(String email, String password) async {
@@ -36,13 +38,13 @@ class AuthProvider extends ChangeNotifier {
       // Fetch user profile info
       _currentUser = await _apiService.getMe();
       
-      // Ensure user is an admin
-      if (!isAdmin) {
+      // Ensure user is authorized (admin or merchant)
+      if (!isAuthorized) {
         _token = null;
         _currentUser = null;
         _apiService.setToken(null);
         _isAuthenticated = false;
-        _errorMessage = 'Access denied: You must be an administrator to log in here.';
+        _errorMessage = 'Access denied: You must be an administrator or merchant to log in here.';
         _isLoading = false;
         notifyListeners();
         return false;

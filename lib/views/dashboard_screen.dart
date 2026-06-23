@@ -25,9 +25,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isInit) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isMerchant) {
+        _selectedIndex = 4; // default to Deliveries pane
+      }
       // Fetch data initially on load
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<DashboardProvider>(context, listen: false).fetchAllData();
+        Provider.of<DashboardProvider>(context, listen: false)
+            .fetchAllData(isMerchant: auth.isMerchant);
       });
       _isInit = false;
     }
@@ -64,20 +69,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const DeliveriesPane(),
     ];
 
+    final isMobile = MediaQuery.of(context).size.width < 900;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A12),
+      appBar: isMobile
+          ? AppBar(
+              backgroundColor: const Color(0xFF111122),
+              elevation: 0,
+              title: Text(
+                _titles[_selectedIndex],
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              leading: Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Colors.white70),
+                  tooltip: 'Refresh Data',
+                  onPressed: () => dashboardProvider.fetchAllData(isMerchant: authProvider.isMerchant),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.white70),
+                  tooltip: 'Sign Out',
+                  onPressed: () => authProvider.logout(),
+                ),
+              ],
+            )
+          : null,
+      drawer: isMobile
+          ? Drawer(
+              backgroundColor: const Color(0xFF111122),
+              child: _buildSidebar(authProvider, isMobile: true),
+            )
+          : null,
       body: Row(
         children: [
-          // Sidebar
-          _buildSidebar(authProvider),
+          // Sidebar (Desktop only)
+          if (!isMobile) _buildSidebar(authProvider, isMobile: false),
           
           // Main Work Area
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top Bar
-                _buildTopBar(authProvider, dashboardProvider),
+                // Top Bar (Desktop only)
+                if (!isMobile) _buildTopBar(authProvider, dashboardProvider),
 
                 // Error Overlay Banner
                 if (dashboardProvider.errorMessage != null)
@@ -92,7 +137,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         )
                       : Container(
-                          padding: const EdgeInsets.all(28),
+                          padding: EdgeInsets.all(isMobile ? 12 : 28),
                           child: panes[_selectedIndex],
                         ),
                 ),
@@ -104,20 +149,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSidebar(AuthProvider auth) {
+  Widget _buildSidebar(AuthProvider auth, {required bool isMobile}) {
     final isSuperAdmin = auth.isSuperAdmin;
-    final roleText = isSuperAdmin ? 'SUPER ADMIN' : 'SUPPORT';
+    final isMerchant = auth.isMerchant;
+    String roleText = 'SUPPORT';
+    if (isSuperAdmin) {
+      roleText = 'SUPER ADMIN';
+    } else if (isMerchant) {
+      roleText = 'MERCHANT';
+    } else if (auth.isSupportAdmin) {
+      roleText = 'SUPPORT';
+    }
 
     return Container(
-      width: 280,
+      width: isMobile ? double.infinity : 280,
       decoration: BoxDecoration(
         color: const Color(0xFF111122),
-        border: Border(
-          right: BorderSide(
-            color: Colors.white.withOpacity(0.06),
-            width: 1,
-          ),
-        ),
+        border: isMobile
+            ? null
+            : Border(
+                right: BorderSide(
+                  color: Colors.white.withOpacity(0.06),
+                  width: 1,
+                ),
+              ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -156,11 +211,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildSidebarItem(0, 'Overview', Icons.dashboard_outlined),
-                _buildSidebarItem(1, 'Users', Icons.people_outline),
-                _buildSidebarItem(2, 'Riders', Icons.two_wheeler),
-                _buildSidebarItem(3, 'Merchants', Icons.storefront),
-                _buildSidebarItem(4, 'Deliveries', Icons.local_shipping_outlined),
+                if (!isMerchant) ...[
+                  _buildSidebarItem(0, 'Overview', Icons.dashboard_outlined, isMobile),
+                  _buildSidebarItem(1, 'Users', Icons.people_outline, isMobile),
+                  _buildSidebarItem(2, 'Riders', Icons.two_wheeler, isMobile),
+                  _buildSidebarItem(3, 'Merchants', Icons.storefront, isMobile),
+                ],
+                _buildSidebarItem(4, 'Deliveries', Icons.local_shipping_outlined, isMobile),
               ],
             ),
           ),
@@ -182,10 +239,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 CircleAvatar(
                   backgroundColor: isSuperAdmin
                       ? const Color(0xFF6C63FF).withOpacity(0.2)
-                      : const Color(0xFF00B0FF).withOpacity(0.2),
+                      : isMerchant
+                          ? const Color(0xFF10AC84).withOpacity(0.2)
+                          : const Color(0xFF00B0FF).withOpacity(0.2),
                   child: Icon(
-                    isSuperAdmin ? Icons.security : Icons.support_agent,
-                    color: isSuperAdmin ? const Color(0xFF8C84FF) : const Color(0xFF40C4FF),
+                    isSuperAdmin
+                        ? Icons.security
+                        : isMerchant
+                            ? Icons.storefront
+                            : Icons.support_agent,
+                    color: isSuperAdmin
+                        ? const Color(0xFF8C84FF)
+                        : isMerchant
+                            ? const Color(0xFF10AC84)
+                            : const Color(0xFF40C4FF),
                     size: 20,
                   ),
                 ),
@@ -209,13 +276,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         decoration: BoxDecoration(
                           color: isSuperAdmin
                               ? const Color(0xFF6C63FF).withOpacity(0.15)
-                              : const Color(0xFF00B0FF).withOpacity(0.15),
+                              : isMerchant
+                                  ? const Color(0xFF10AC84).withOpacity(0.15)
+                                  : const Color(0xFF00B0FF).withOpacity(0.15),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           roleText,
                           style: GoogleFonts.inter(
-                            color: isSuperAdmin ? const Color(0xFF8C84FF) : const Color(0xFF40C4FF),
+                            color: isSuperAdmin
+                                ? const Color(0xFF8C84FF)
+                                : isMerchant
+                                    ? const Color(0xFF10AC84)
+                                    : const Color(0xFF40C4FF),
                             fontSize: 9,
                             fontWeight: FontWeight.bold,
                           ),
@@ -232,7 +305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSidebarItem(int index, String title, IconData icon) {
+  Widget _buildSidebarItem(int index, String title, IconData icon, bool isMobile) {
     final isSelected = _selectedIndex == index;
 
     return Padding(
@@ -242,6 +315,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          if (isMobile) {
+            Navigator.of(context).pop(); // Close drawer
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Container(
@@ -310,7 +386,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.white70),
                 tooltip: 'Refresh Data',
-                onPressed: () => dashboard.fetchAllData(),
+                onPressed: () => dashboard.fetchAllData(isMerchant: auth.isMerchant),
               ),
               const SizedBox(width: 16),
               // Logout Button

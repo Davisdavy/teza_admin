@@ -44,23 +44,31 @@ class DashboardProvider extends ChangeNotifier {
   }
 
   // --- Bulk Fetch ---
-  Future<void> fetchAllData() async {
+  Future<void> fetchAllData({bool isMerchant = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final results = await Future.wait([
-        _apiService.getUsers(),
-        _apiService.getRiders(),
-        _apiService.getMerchants(),
-        _apiService.getDeliveries(),
-      ]);
+      if (isMerchant) {
+        final merchantDeliveries = await _apiService.getMerchantDeliveries();
+        _deliveries = merchantDeliveries;
+        _users = [];
+        _riders = [];
+        _merchants = [];
+      } else {
+        final results = await Future.wait([
+          _apiService.getUsers(),
+          _apiService.getRiders(),
+          _apiService.getMerchants(),
+          _apiService.getDeliveries(),
+        ]);
 
-      _users = results[0] as List<UserAccount>;
-      _riders = results[1] as List<RiderProfile>;
-      _merchants = results[2] as List<MerchantProfile>;
-      _deliveries = results[3] as List<Delivery>;
+        _users = results[0] as List<UserAccount>;
+        _riders = results[1] as List<RiderProfile>;
+        _merchants = results[2] as List<MerchantProfile>;
+        _deliveries = results[3] as List<Delivery>;
+      }
 
       _isLoading = false;
       notifyListeners();

@@ -44,7 +44,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
       body: Stack(
@@ -96,8 +95,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                   child: Container(
-                    width: 450,
-                    padding: const EdgeInsets.all(40),
+                    constraints: const BoxConstraints(maxWidth: 450),
+                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.06),
                       borderRadius: BorderRadius.circular(24),
