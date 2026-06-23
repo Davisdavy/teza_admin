@@ -85,3 +85,33 @@ class Delivery {
     };
   }
 }
+
+class PagedDeliveries {
+  final List<Delivery> content;
+  final int page;
+  final int size;
+  final int totalElements;
+  final int totalPages;
+  final bool last;
+
+  PagedDeliveries({
+    required this.content,
+    required this.page,
+    required this.size,
+    required this.totalElements,
+    required this.totalPages,
+    required this.last,
+  });
+
+  factory PagedDeliveries.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> list = json['content'] ?? [];
+    return PagedDeliveries(
+      content: list.map((e) => Delivery.fromJson(e)).toList(),
+      page: json['page'] ?? 0,
+      size: json['size'] ?? 10,
+      totalElements: json['totalElements'] ?? 0,
+      totalPages: json['totalPages'] ?? 0,
+      last: json['last'] ?? true,
+    );
+  }
+}

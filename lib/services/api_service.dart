@@ -63,9 +63,12 @@ class ApiService {
   Future<List<UserAccount>> getUsers() async {
     final url = Uri.parse('$baseUrl/api/users');
     final response = await http.get(url, headers: _headers());
+    print('GET /api/users response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> list = jsonDecode(response.body);
+      final dynamic decoded = jsonDecode(response.body);
+      // Support both raw list and paged map responses
+      final List<dynamic> list = decoded is List ? decoded : (decoded['content'] ?? []);
       return list.map((e) => UserAccount.fromJson(e)).toList();
     } else {
       throw Exception(_parseError(response));
@@ -105,9 +108,11 @@ class ApiService {
   Future<List<RiderProfile>> getRiders() async {
     final url = Uri.parse('$baseUrl/api/rider/profiles');
     final response = await http.get(url, headers: _headers());
+    print('GET /api/rider/profiles response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> list = jsonDecode(response.body);
+      final dynamic decoded = jsonDecode(response.body);
+      final List<dynamic> list = decoded is List ? decoded : (decoded['content'] ?? []);
       return list.map((e) => RiderProfile.fromJson(e)).toList();
     } else {
       throw Exception(_parseError(response));
@@ -145,9 +150,11 @@ class ApiService {
   Future<List<MerchantProfile>> getMerchants() async {
     final url = Uri.parse('$baseUrl/api/merchant/profiles');
     final response = await http.get(url, headers: _headers());
+    print('GET /api/merchant/profiles response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> list = jsonDecode(response.body);
+      final dynamic decoded = jsonDecode(response.body);
+      final List<dynamic> list = decoded is List ? decoded : (decoded['content'] ?? []);
       return list.map((e) => MerchantProfile.fromJson(e)).toList();
     } else {
       throw Exception(_parseError(response));
@@ -196,13 +203,13 @@ class ApiService {
     }
   }
 
-  Future<List<Delivery>> getDeliveries() async {
-    final url = Uri.parse('$baseUrl/api/delivery');
+  Future<PagedDeliveries> getDeliveries({int page = 0, int size = 10}) async {
+    final url = Uri.parse('$baseUrl/api/delivery?page=$page&size=$size');
     final response = await http.get(url, headers: _headers());
+    print('GET /api/delivery response: ${response.statusCode} - ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> list = jsonDecode(response.body);
-      return list.map((e) => Delivery.fromJson(e)).toList();
+      return PagedDeliveries.fromJson(jsonDecode(response.body));
     } else {
       throw Exception(_parseError(response));
     }

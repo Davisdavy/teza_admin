@@ -438,6 +438,69 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                     },
                   ),
           ),
+          if (dashboardProvider.deliveriesTotalElements > 0) ...[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Showing ${(dashboardProvider.deliveriesPage * 10) + 1} - ${((dashboardProvider.deliveriesPage * 10) + filteredDeliveries.length)} of ${dashboardProvider.deliveriesTotalElements} deliveries',
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                  ),
+                ),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: dashboardProvider.deliveriesPage > 0
+                          ? () => dashboardProvider.fetchDeliveriesPage(dashboardProvider.deliveriesPage - 1)
+                          : null,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        disabledForegroundColor: Colors.white30,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.chevron_left, size: 20),
+                          SizedBox(width: 4),
+                          Text('Previous'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      'Page ${dashboardProvider.deliveriesPage + 1} of ${dashboardProvider.deliveriesTotalPages}',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    TextButton(
+                      onPressed: !dashboardProvider.deliveriesIsLast
+                          ? () => dashboardProvider.fetchDeliveriesPage(dashboardProvider.deliveriesPage + 1)
+                          : null,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        disabledForegroundColor: Colors.white30,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text('Next'),
+                          SizedBox(width: 4),
+                          Icon(Icons.chevron_right, size: 20),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

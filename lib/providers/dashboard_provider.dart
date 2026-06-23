@@ -16,6 +16,12 @@ class DashboardProvider extends ChangeNotifier {
   List<MerchantProfile> _merchants = [];
   List<Delivery> _deliveries = [];
 
+  int _deliveriesPage = 0;
+  final int _deliveriesSize = 10;
+  int _deliveriesTotalElements = 0;
+  int _deliveriesTotalPages = 0;
+  bool _deliveriesIsLast = true;
+
   // Detail/associated data for selected delivery
   List<DeliveryOffer> _activeOffers = [];
   List<DeliveryStatusHistory> _activeHistory = [];
@@ -30,6 +36,11 @@ class DashboardProvider extends ChangeNotifier {
   List<RiderProfile> get riders => _riders;
   List<MerchantProfile> get merchants => _merchants;
   List<Delivery> get deliveries => _deliveries;
+
+  int get deliveriesPage => _deliveriesPage;
+  int get deliveriesTotalElements => _deliveriesTotalElements;
+  int get deliveriesTotalPages => _deliveriesTotalPages;
+  bool get deliveriesIsLast => _deliveriesIsLast;
 
   List<DeliveryOffer> get activeOffers => _activeOffers;
   List<DeliveryStatusHistory> get activeHistory => _activeHistory;
@@ -56,19 +67,51 @@ class DashboardProvider extends ChangeNotifier {
         _users = [];
         _riders = [];
         _merchants = [];
+        _deliveriesPage = 0;
+        _deliveriesTotalElements = merchantDeliveries.length;
+        _deliveriesTotalPages = 1;
+        _deliveriesIsLast = true;
       } else {
         final results = await Future.wait([
           _apiService.getUsers(),
           _apiService.getRiders(),
           _apiService.getMerchants(),
-          _apiService.getDeliveries(),
+          _apiService.getDeliveries(page: 0, size: _deliveriesSize),
         ]);
 
         _users = results[0] as List<UserAccount>;
         _riders = results[1] as List<RiderProfile>;
         _merchants = results[2] as List<MerchantProfile>;
-        _deliveries = results[3] as List<Delivery>;
+        
+        final paged = results[3] as PagedDeliveries;
+        _deliveries = paged.content;
+        _deliveriesPage = paged.page;
+        _deliveriesTotalElements = paged.totalElements;
+        _deliveriesTotalPages = paged.totalPages;
+        _deliveriesIsLast = paged.last;
       }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> fetchDeliveriesPage(int page) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final paged = await _apiService.getDeliveries(page: page, size: _deliveriesSize);
+      _deliveries = paged.content;
+      _deliveriesPage = paged.page;
+      _deliveriesTotalElements = paged.totalElements;
+      _deliveriesTotalPages = paged.totalPages;
+      _deliveriesIsLast = paged.last;
 
       _isLoading = false;
       notifyListeners();
@@ -247,9 +290,13 @@ class DashboardProvider extends ChangeNotifier {
     try {
       final offer = await _apiService.createOffer(deliveryId, riderId);
       _activeOffers.add(offer);
-      // Refresh deliveries list to see status/assignment updates
-      final freshDeliveries = await _apiService.getDeliveries();
-      _deliveries = freshDeliveries;
+      // Refresh deliveries list to see status/assignment updates on current page
+      final freshDeliveries = await _apiService.getDeliveries(page: _deliveriesPage, size: _deliveriesSize);
+      _deliveries = freshDeliveries.content;
+      _deliveriesPage = freshDeliveries.page;
+      _deliveriesTotalElements = freshDeliveries.totalElements;
+      _deliveriesTotalPages = freshDeliveries.totalPages;
+      _deliveriesIsLast = freshDeliveries.last;
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
