@@ -3,8 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/delivery.dart';
+import '../../widgets/google_place_autocomplete.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../config/mapbox_config.dart';
 
 class DeliveriesPane extends StatefulWidget {
   const DeliveriesPane({super.key});
@@ -1256,171 +1258,62 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Quick Select Pickup Preset
-                    DropdownButtonFormField<Map<String, dynamic>>(
-                      dropdownColor: const Color(0xFF16162E),
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: _inputDecoration('Select Pickup Preset').copyWith(
-                        labelText: 'Quick Select Pickup Landmark',
-                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
-                      ),
-                      items: _nairobiPresets.map((preset) {
-                        return DropdownMenuItem<Map<String, dynamic>>(
-                          value: preset,
-                          child: Text(preset['name'] as String),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          pickupAddressController.text = val['name'] as String;
-                          pickupLatitudeController.text = val['lat'].toString();
-                          pickupLongitudeController.text = val['lng'].toString();
+
+
+                    // Pickup Location Autocomplete
+                    GooglePlaceAutocomplete(
+                      hint: 'Search pickup location',
+                      onSelected: (place) {
+                        pickupAddressController.text = place.placeName;
+                        // center provides (long, lat)
+                        final loc = place.center;
+                        if (loc != null) {
+                          pickupLatitudeController.text = loc.lat.toString();
+                          pickupLongitudeController.text = loc.long.toString();
                         }
+                        setState(() {});
                       },
                     ),
-                    const SizedBox(height: 16),
-
-                    // Pickup Address
-                    Text('Pickup Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 8),
-                    TextFormField(
-                      controller: pickupAddressController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: _inputDecoration('e.g. Mwimuto Shopping Center'),
-                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Pickup Coordinates
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Pickup Latitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: pickupLatitudeController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: _inputDecoration('-1.2543'),
-                                validator: (val) {
-                                  if (val == null || val.isEmpty) return 'Required';
-                                  final num = double.tryParse(val);
-                                  if (num == null || num < -90.0 || num > 90.0) return 'Invalid (-90 to 90)';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
+                    // Pickup preview map (shown when location selected)
+                    if (pickupLatitudeController.text.isNotEmpty && pickupLongitudeController.text.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Image.network(
+                          'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${pickupLongitudeController.text},${pickupLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
+                          height: 120,
+                          width: 200,
+                          fit: BoxFit.cover,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Pickup Longitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: pickupLongitudeController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: _inputDecoration('36.7582'),
-                                validator: (val) {
-                                  if (val == null || val.isEmpty) return 'Required';
-                                  final num = double.tryParse(val);
-                                  if (num == null || num < -180.0 || num > 180.0) return 'Invalid (-180 to 180)';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Quick Select Dropoff Preset
-                    DropdownButtonFormField<Map<String, dynamic>>(
-                      dropdownColor: const Color(0xFF16162E),
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: _inputDecoration('Select Dropoff Preset').copyWith(
-                        labelText: 'Quick Select Dropoff Landmark',
-                        labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                       ),
-                      items: _nairobiPresets.map((preset) {
-                        return DropdownMenuItem<Map<String, dynamic>>(
-                          value: preset,
-                          child: Text(preset['name'] as String),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          dropoffAddressController.text = val['name'] as String;
-                          dropoffLatitudeController.text = val['lat'].toString();
-                          dropoffLongitudeController.text = val['lng'].toString();
+
+
+
+                    // Dropoff Location Autocomplete
+                    GooglePlaceAutocomplete(
+                      hint: 'Search dropoff location',
+                      onSelected: (place) {
+                        dropoffAddressController.text = place.placeName;
+                        final loc = place.center;
+                        if (loc != null) {
+                          dropoffLatitudeController.text = loc.lat.toString();
+                          dropoffLongitudeController.text = loc.long.toString();
                         }
+                        setState(() {});
                       },
                     ),
-                    const SizedBox(height: 16),
-
-                    // Dropoff Address
-                    Text('Dropoff Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
                     const SizedBox(height: 8),
-                    TextFormField(
-                      controller: dropoffAddressController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: _inputDecoration('e.g. Wangige Market'),
-                      validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Dropoff Coordinates
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Dropoff Latitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: dropoffLatitudeController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: _inputDecoration('-1.2612'),
-                                validator: (val) {
-                                  if (val == null || val.isEmpty) return 'Required';
-                                  final num = double.tryParse(val);
-                                  if (num == null || num < -90.0 || num > 90.0) return 'Invalid (-90 to 90)';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
+                    // Dropoff preview map (shown when location selected)
+                    if (dropoffLatitudeController.text.isNotEmpty && dropoffLongitudeController.text.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Image.network(
+                          'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${dropoffLongitudeController.text},${dropoffLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
+                          height: 120,
+                          width: 200,
+                          fit: BoxFit.cover,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Dropoff Longitude', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                              const SizedBox(height: 8),
-                              TextFormField(
-                                controller: dropoffLongitudeController,
-                                style: const TextStyle(color: Colors.white),
-                                decoration: _inputDecoration('36.7410'),
-                                validator: (val) {
-                                  if (val == null || val.isEmpty) return 'Required';
-                                  final num = double.tryParse(val);
-                                  if (num == null || num < -180.0 || num > 180.0) return 'Invalid (-180 to 180)';
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                      ),
 
                     // Delivery Fee
                     Text('Delivery Fee (KES)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),

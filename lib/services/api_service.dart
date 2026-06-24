@@ -308,6 +308,28 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getPlacesAutocomplete(String input) async {
+    final url = Uri.parse('$baseUrl/api/delivery/places/autocomplete?input=${Uri.encodeComponent(input)}');
+    final response = await http.get(url, headers: _headers());
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['predictions'] as List? ?? [];
+    } else {
+      throw Exception('Failed to get predictions');
+    }
+  }
+
+  Future<Map<String, dynamic>> getPlaceDetails(String placeId) async {
+    final url = Uri.parse('$baseUrl/api/delivery/places/details?placeId=${Uri.encodeComponent(placeId)}');
+    final response = await http.get(url, headers: _headers());
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['result'] as Map<String, dynamic>? ?? {};
+    } else {
+      throw Exception('Failed to get place details');
+    }
+  }
+
   // --- Helper to Parse Backend Errors ---
 
   String _parseError(http.Response response) {
