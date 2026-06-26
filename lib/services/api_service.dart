@@ -9,7 +9,7 @@ import '../models/history.dart';
 import '../models/ranked_rider.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.100.8:8080';
+  static const String baseUrl = 'http://192.168.100.9:8080';
   String? _token;
 
   void setToken(String? token) {
