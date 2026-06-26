@@ -330,6 +330,19 @@ class ApiService {
     }
   }
 
+  Future<String> getReverseGeocode(double lat, double lng) async {
+    final url = Uri.parse('$baseUrl/api/delivery/places/reverse-geocode?lat=$lat&lng=$lng');
+    final response = await http.get(url, headers: _headers());
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final results = data['results'] as List?;
+      if (results != null && results.isNotEmpty) {
+        return results[0]['formatted_address'] as String;
+      }
+    }
+    throw Exception('Failed to reverse geocode');
+  }
+
   // --- Helper to Parse Backend Errors ---
 
   String _parseError(http.Response response) {

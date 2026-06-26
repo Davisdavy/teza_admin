@@ -63,6 +63,14 @@ class _GooglePlaceAutocompleteState extends State<GooglePlaceAutocomplete> {
   }
 
   @override
+  void didUpdateWidget(covariant GooglePlaceAutocomplete oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialValue != oldWidget.initialValue && widget.initialValue != null) {
+      _controller.text = widget.initialValue!;
+    }
+  }
+
+  @override
   void dispose() {
     _debounce?.cancel();
     _controller.dispose();

@@ -4,9 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/delivery.dart';
 import '../../widgets/google_place_autocomplete.dart';
+import '../../widgets/map_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../config/mapbox_config.dart';
+import '../../services/api_service.dart';
 
 class DeliveriesPane extends StatefulWidget {
   const DeliveriesPane({super.key});
@@ -1236,146 +1237,318 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     final dropoffLongitudeController = TextEditingController();
     final deliveryFeeController = TextEditingController();
 
+    bool pickupFromMap = false;
+    bool dropoffFromMap = false;
+
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF131326),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withOpacity(0.06)),
-          ),
-          title: Text(
-            'Create New Delivery Order',
-            style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-          content: SizedBox(
-            width: 600,
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-
-
-                    // Pickup Location Autocomplete
-                    GooglePlaceAutocomplete(
-                      hint: 'Search pickup location',
-                      onSelected: (place) {
-                        pickupAddressController.text = place.placeName;
-                        // center provides (long, lat)
-                        final loc = place.center;
-                        if (loc != null) {
-                          pickupLatitudeController.text = loc.lat.toString();
-                          pickupLongitudeController.text = loc.long.toString();
-                        }
-                        setState(() {});
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    // Pickup preview map (shown when location selected)
-                    if (pickupLatitudeController.text.isNotEmpty && pickupLongitudeController.text.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${pickupLongitudeController.text},${pickupLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
-                          height: 120,
-                          width: 200,
-                          fit: BoxFit.cover,
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF131326),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: BorderSide(color: Colors.white.withOpacity(0.06)),
+              ),
+              title: Text(
+                'Create New Delivery Order',
+                style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+              content: SizedBox(
+                width: 600,
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Pickup Header & Toggle
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Pickup Location',
+                              style: GoogleFonts.inter(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => setDialogState(() => pickupFromMap = false),
+                                  icon: Icon(
+                                    Icons.search,
+                                    size: 14,
+                                    color: !pickupFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                  ),
+                                  label: Text(
+                                    'Search',
+                                    style: TextStyle(
+                                      color: !pickupFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () => setDialogState(() => pickupFromMap = true),
+                                  icon: Icon(
+                                    Icons.map,
+                                    size: 14,
+                                    color: pickupFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                  ),
+                                  label: Text(
+                                    'Map',
+                                    style: TextStyle(
+                                      color: pickupFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 4),
 
+                        if (!pickupFromMap) ...[
+                          // Pickup Location Autocomplete
+                          GooglePlaceAutocomplete(
+                            hint: 'Search pickup location',
+                            initialValue: pickupAddressController.text.isNotEmpty ? pickupAddressController.text : null,
+                            onSelected: (place) {
+                              pickupAddressController.text = place.placeName;
+                              final loc = place.center;
+                              if (loc != null) {
+                                pickupLatitudeController.text = loc.lat.toString();
+                                pickupLongitudeController.text = loc.long.toString();
+                              }
+                              setDialogState(() {});
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          // Pickup preview map (shown when location selected)
+                          if (pickupLatitudeController.text.isNotEmpty && pickupLongitudeController.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  '${ApiService.baseUrl}/api/delivery/places/static-map?lat=${pickupLatitudeController.text}&lng=${pickupLongitudeController.text}&zoom=14&width=200&height=120',
+                                  height: 120,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                        ] else ...[
+                          // Interactive Map Picker for Pickup
+                          MapPicker(
+                            initialLatitude: double.tryParse(pickupLatitudeController.text) ?? -1.2921,
+                            initialLongitude: double.tryParse(pickupLongitudeController.text) ?? 36.8219,
+                            onLocationSelected: (lat, lng, address) {
+                              pickupAddressController.text = address;
+                              pickupLatitudeController.text = lat.toString();
+                              pickupLongitudeController.text = lng.toString();
+                              setDialogState(() {
+                                pickupFromMap = false; // Toggle back to show details / preview
+                              });
+                            },
+                          ),
+                        ],
+                        
+                        // Show active coordinates if set via map
+                        if (pickupLatitudeController.text.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 12),
+                            child: Text(
+                              'Selected Pickup: ${pickupAddressController.text} (${pickupLatitudeController.text}, ${pickupLongitudeController.text})',
+                              style: TextStyle(color: Colors.greenAccent.withOpacity(0.8), fontSize: 11),
+                            ),
+                          ),
 
+                        const SizedBox(height: 16),
 
-                    // Dropoff Location Autocomplete
-                    GooglePlaceAutocomplete(
-                      hint: 'Search dropoff location',
-                      onSelected: (place) {
-                        dropoffAddressController.text = place.placeName;
-                        final loc = place.center;
-                        if (loc != null) {
-                          dropoffLatitudeController.text = loc.lat.toString();
-                          dropoffLongitudeController.text = loc.long.toString();
-                        }
-                        setState(() {});
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    // Dropoff preview map (shown when location selected)
-                    if (dropoffLatitudeController.text.isNotEmpty && dropoffLongitudeController.text.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Image.network(
-                          'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${dropoffLongitudeController.text},${dropoffLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
-                          height: 120,
-                          width: 200,
-                          fit: BoxFit.cover,
+                        // Dropoff Header & Toggle
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Dropoff Location',
+                              style: GoogleFonts.inter(
+                                color: Colors.white70,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => setDialogState(() => dropoffFromMap = false),
+                                  icon: Icon(
+                                    Icons.search,
+                                    size: 14,
+                                    color: !dropoffFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                  ),
+                                  label: Text(
+                                    'Search',
+                                    style: TextStyle(
+                                      color: !dropoffFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                                TextButton.icon(
+                                  onPressed: () => setDialogState(() => dropoffFromMap = true),
+                                  icon: Icon(
+                                    Icons.map,
+                                    size: 14,
+                                    color: dropoffFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                  ),
+                                  label: Text(
+                                    'Map',
+                                    style: TextStyle(
+                                      color: dropoffFromMap ? const Color(0xFF6C63FF) : Colors.white54,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 4),
 
-                    // Delivery Fee
-                    Text('Delivery Fee (KES)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: deliveryFeeController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: _inputDecoration('150'),
-                      validator: (val) {
-                        if (val == null || val.isEmpty) return 'Required';
-                        final num = double.tryParse(val);
-                        if (num == null || num < 0.0) return 'Must be positive';
-                        return null;
-                      },
+                        if (!dropoffFromMap) ...[
+                          // Dropoff Location Autocomplete
+                          GooglePlaceAutocomplete(
+                            hint: 'Search dropoff location',
+                            initialValue: dropoffAddressController.text.isNotEmpty ? dropoffAddressController.text : null,
+                            onSelected: (place) {
+                              dropoffAddressController.text = place.placeName;
+                              final loc = place.center;
+                              if (loc != null) {
+                                dropoffLatitudeController.text = loc.lat.toString();
+                                dropoffLongitudeController.text = loc.long.toString();
+                              }
+                              setDialogState(() {});
+                            },
+                          ),
+                          const SizedBox(height: 8),
+                          // Dropoff preview map (shown when location selected)
+                          if (dropoffLatitudeController.text.isNotEmpty && dropoffLongitudeController.text.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  '${ApiService.baseUrl}/api/delivery/places/static-map?lat=${dropoffLatitudeController.text}&lng=${dropoffLongitudeController.text}&zoom=14&width=200&height=120',
+                                  height: 120,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                        ] else ...[
+                          // Interactive Map Picker for Dropoff
+                          MapPicker(
+                            initialLatitude: double.tryParse(dropoffLatitudeController.text) ?? -1.2921,
+                            initialLongitude: double.tryParse(dropoffLongitudeController.text) ?? 36.8219,
+                            onLocationSelected: (lat, lng, address) {
+                              dropoffAddressController.text = address;
+                              dropoffLatitudeController.text = lat.toString();
+                              dropoffLongitudeController.text = lng.toString();
+                              setDialogState(() {
+                                dropoffFromMap = false; // Toggle back to show details / preview
+                              });
+                            },
+                          ),
+                        ],
+
+                        // Show active coordinates if set via map
+                        if (dropoffLatitudeController.text.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 12),
+                            child: Text(
+                              'Selected Dropoff: ${dropoffAddressController.text} (${dropoffLatitudeController.text}, ${dropoffLongitudeController.text})',
+                              style: TextStyle(color: Colors.greenAccent.withOpacity(0.8), fontSize: 11),
+                            ),
+                          ),
+
+                        const SizedBox(height: 16),
+
+                        // Delivery Fee
+                        Text('Delivery Fee (KES)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: deliveryFeeController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: _inputDecoration('150'),
+                          validator: (val) {
+                            if (val == null || val.isEmpty) return 'Required';
+                            final num = double.tryParse(val);
+                            if (num == null || num < 0.0) return 'Must be positive';
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white38)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  try {
-                    await provider.createDelivery(
-                      pickupAddress: pickupAddressController.text.trim(),
-                      pickupLatitude: double.parse(pickupLatitudeController.text),
-                      pickupLongitude: double.parse(pickupLongitudeController.text),
-                      dropoffAddress: dropoffAddressController.text.trim(),
-                      dropoffLatitude: double.parse(dropoffLatitudeController.text),
-                      dropoffLongitude: double.parse(dropoffLongitudeController.text),
-                      deliveryFee: double.parse(deliveryFeeController.text),
-                    );
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white38)),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState!.validate() &&
+                        pickupLatitudeController.text.isNotEmpty &&
+                        dropoffLatitudeController.text.isNotEmpty) {
+                      try {
+                        await provider.createDelivery(
+                          pickupAddress: pickupAddressController.text.trim(),
+                          pickupLatitude: double.parse(pickupLatitudeController.text),
+                          pickupLongitude: double.parse(pickupLongitudeController.text),
+                          dropoffAddress: dropoffAddressController.text.trim(),
+                          dropoffLatitude: double.parse(dropoffLatitudeController.text),
+                          dropoffLongitude: double.parse(dropoffLongitudeController.text),
+                          deliveryFee: double.parse(deliveryFeeController.text),
+                        );
+                        if (context.mounted) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Delivery order created successfully')),
+                          );
+                        }
+                      } catch (e) {
+                        // Handled by error banner
+                      }
+                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Delivery order created successfully')),
+                        const SnackBar(content: Text('Please select both pickup and dropoff locations')),
                       );
                     }
-                  } catch (e) {
-                    // Handled by error banner
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6C63FF),
-                foregroundColor: Colors.white,
-              ),
-              child: Text(
-                'Create Order',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C63FF),
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    'Create Order',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
     );
