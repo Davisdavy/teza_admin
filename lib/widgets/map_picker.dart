@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import '../config/mapbox_config.dart';
 import '../services/api_service.dart';
 
 class MapPicker extends StatefulWidget {
@@ -88,7 +89,7 @@ class _MapPickerState extends State<MapPicker> {
   String get _mapUrl {
     final width = 500;
     final height = 280;
-    return '${ApiService.baseUrl}/api/delivery/places/static-map?lat=$_latitude&lng=$_longitude&zoom=${_zoom.toInt()}&width=$width&height=$height';
+    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/$_longitude,$_latitude,$_zoom/${width}x$height@2x?access_token=$mapboxAccessToken';
   }
 
   void _zoomIn() {

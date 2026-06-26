@@ -8,6 +8,7 @@ import '../../widgets/map_picker.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../services/api_service.dart';
+import '../../config/mapbox_config.dart';
 
 class DeliveriesPane extends StatefulWidget {
   const DeliveriesPane({super.key});
@@ -1337,7 +1338,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                  '${ApiService.baseUrl}/api/delivery/places/static-map?lat=${pickupLatitudeController.text}&lng=${pickupLongitudeController.text}&zoom=14&width=200&height=120',
+                                  'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${pickupLongitudeController.text},${pickupLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
                                   height: 120,
                                   width: 200,
                                   fit: BoxFit.cover,
@@ -1445,7 +1446,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.network(
-                                  '${ApiService.baseUrl}/api/delivery/places/static-map?lat=${dropoffLatitudeController.text}&lng=${dropoffLongitudeController.text}&zoom=14&width=200&height=120',
+                                  'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/${dropoffLongitudeController.text},${dropoffLatitudeController.text},14/200x120@2x?access_token=$mapboxAccessToken',
                                   height: 120,
                                   width: 200,
                                   fit: BoxFit.cover,
