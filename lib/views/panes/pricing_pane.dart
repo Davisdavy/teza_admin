@@ -36,13 +36,19 @@ class _PricingPaneState extends State<PricingPane> {
   PricingEstimate? _calcResult;
   bool _isCalculating = false;
   bool _isSaving = false;
+  bool _isConfigLoading = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() => _isConfigLoading = true);
       Provider.of<DashboardProvider>(context, listen: false).fetchPricingConfig().then((_) {
         _loadConfigToControllers();
+      }).whenComplete(() {
+        if (mounted) {
+          setState(() => _isConfigLoading = false);
+        }
       });
     });
   }
@@ -150,7 +156,7 @@ class _PricingPaneState extends State<PricingPane> {
           const SizedBox(height: 28),
 
           Expanded(
-            child: dashboard.isLoading && dashboard.pricingConfig == null
+            child: _isConfigLoading && dashboard.pricingConfig == null
                 ? const Center(child: CircularProgressIndicator(color: Color(0xFF6C63FF)))
                 : SingleChildScrollView(
                     child: _activeTab == 0 ? _buildConfigTab(isSuperAdmin, dashboard) : _buildCalculatorTab(dashboard),

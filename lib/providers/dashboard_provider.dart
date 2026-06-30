@@ -313,32 +313,26 @@ class DashboardProvider extends ChangeNotifier {
   // --- Pricing Methods ---
 
   Future<void> fetchPricingConfig() async {
-    _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _pricingConfig = await _apiService.getPricingConfig();
-      _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
     }
   }
 
   Future<void> updatePricingConfig(PricingConfiguration config) async {
-    _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       _pricingConfig = await _apiService.updatePricingConfig(config);
-      _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _isLoading = false;
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
       rethrow;
