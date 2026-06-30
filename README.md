@@ -107,3 +107,12 @@ To build the optimized static asset files (output targeting `build/web/`):
 ```bash
 flutter build web
 ```
+
+---
+
+## 🌿 Git Workflow & Branching Strategy
+
+This repository follows a structured branch management workflow:
+- **`main`**: Contains the stable production code. No direct commits or feature branch merges are allowed on `main`. It only accepts merges from the `develop` branch.
+- **`develop`**: The primary integration branch for development. All feature branches must target and merge into `develop` first.
+- **Feature Branches**: Created for writing new features or fixes (e.g., `feat/some-feature` or `fix/some-bug`). Developers push these branches and create Pull Requests targeting the `develop` branch.

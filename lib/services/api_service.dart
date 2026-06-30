@@ -189,7 +189,6 @@ class ApiService {
     required String dropoffAddress,
     required double dropoffLatitude,
     required double dropoffLongitude,
-    required double deliveryFee,
   }) async {
     final url = Uri.parse('$baseUrl/api/delivery');
     final response = await http.post(
@@ -202,7 +201,6 @@ class ApiService {
         'dropoffAddress': dropoffAddress,
         'dropoffLatitude': dropoffLatitude,
         'dropoffLongitude': dropoffLongitude,
-        'deliveryFee': deliveryFee,
       }),
     );
 

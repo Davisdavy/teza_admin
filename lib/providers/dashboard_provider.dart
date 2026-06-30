@@ -229,7 +229,6 @@ class DashboardProvider extends ChangeNotifier {
     required String dropoffAddress,
     required double dropoffLatitude,
     required double dropoffLongitude,
-    required double deliveryFee,
   }) async {
     try {
       final newDelivery = await _apiService.createDelivery(
@@ -239,7 +238,6 @@ class DashboardProvider extends ChangeNotifier {
         dropoffAddress: dropoffAddress,
         dropoffLatitude: dropoffLatitude,
         dropoffLongitude: dropoffLongitude,
-        deliveryFee: deliveryFee,
       );
       _deliveries.insert(0, newDelivery);
       notifyListeners();
