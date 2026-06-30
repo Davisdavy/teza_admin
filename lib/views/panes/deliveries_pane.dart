@@ -702,7 +702,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                       _buildSelectableMetaRow('Rider ID', delivery.riderId ?? 'Not Assigned'),
                       _buildMetaRow('Pickup', delivery.pickupAddress),
                       _buildMetaRow('Dropoff', delivery.dropoffAddress),
-                      _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(2)}'),
+                      _buildMetaRow('Fee', 'KES ${delivery.deliveryFee.toStringAsFixed(0)}'),
                     ],
                   ),
                 ),
@@ -1236,7 +1236,6 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
     final dropoffAddressController = TextEditingController();
     final dropoffLatitudeController = TextEditingController();
     final dropoffLongitudeController = TextEditingController();
-    final deliveryFeeController = TextEditingController();
 
     bool pickupFromMap = false;
     bool dropoffFromMap = false;
@@ -1480,21 +1479,6 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                           ),
 
                         const SizedBox(height: 16),
-
-                        // Delivery Fee
-                        Text('Delivery Fee (KES)', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: deliveryFeeController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: _inputDecoration('150'),
-                          validator: (val) {
-                            if (val == null || val.isEmpty) return 'Required';
-                            final num = double.tryParse(val);
-                            if (num == null || num < 0.0) return 'Must be positive';
-                            return null;
-                          },
-                        ),
                       ],
                     ),
                   ),
@@ -1518,7 +1502,6 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                           dropoffAddress: dropoffAddressController.text.trim(),
                           dropoffLatitude: double.parse(dropoffLatitudeController.text),
                           dropoffLongitude: double.parse(dropoffLongitudeController.text),
-                          deliveryFee: double.parse(deliveryFeeController.text),
                         );
                         if (context.mounted) {
                           Navigator.of(context).pop();
