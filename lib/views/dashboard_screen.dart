@@ -9,6 +9,7 @@ import 'panes/users_pane.dart';
 import 'panes/riders_pane.dart';
 import 'panes/merchants_pane.dart';
 import 'panes/deliveries_pane.dart';
+import 'panes/pricing_pane.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -44,6 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'Rider Directory & Onboarding',
     'Merchant Directory',
     'Deliveries & Dispatch Control',
+    'Pricing Scheme & Estimation',
   ];
 
   @override
@@ -67,6 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const RidersPane(),
       const MerchantsPane(),
       const DeliveriesPane(),
+      const PricingPane(),
     ];
 
     final isMobile = MediaQuery.of(context).size.width < 900;
@@ -216,6 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildSidebarItem(1, 'Users', Icons.people_outline, isMobile),
                   _buildSidebarItem(2, 'Riders', Icons.two_wheeler, isMobile),
                   _buildSidebarItem(3, 'Merchants', Icons.storefront, isMobile),
+                  _buildSidebarItem(5, 'Pricing Engine', Icons.calculate_outlined, isMobile),
                 ],
                 _buildSidebarItem(4, 'Deliveries', Icons.local_shipping_outlined, isMobile),
               ],

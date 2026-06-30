@@ -7,6 +7,7 @@ import '../models/delivery.dart';
 import '../models/offer.dart';
 import '../models/history.dart';
 import '../models/ranked_rider.dart';
+import '../models/pricing.dart';
 
 class ApiService {
   static String get baseUrl {
@@ -364,5 +365,58 @@ class ApiService {
       }
     } catch (_) {}
     return 'HTTP Error ${response.statusCode}: ${response.reasonPhrase}';
+  }
+
+  // --- Pricing Endpoints ---
+
+  Future<PricingConfiguration> getPricingConfig() async {
+    final url = Uri.parse('$baseUrl/api/pricing/config');
+    final response = await http.get(url, headers: _headers());
+
+    if (response.statusCode == 200) {
+      return PricingConfiguration.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  Future<PricingConfiguration> updatePricingConfig(PricingConfiguration config) async {
+    final url = Uri.parse('$baseUrl/api/pricing/config');
+    final response = await http.put(
+      url,
+      headers: _headers(),
+      body: jsonEncode(config.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return PricingConfiguration.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  Future<PricingEstimate> estimatePricing({
+    required double pickupLatitude,
+    required double pickupLongitude,
+    required double dropoffLatitude,
+    required double dropoffLongitude,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/pricing/estimate');
+    final response = await http.post(
+      url,
+      headers: _headers(),
+      body: jsonEncode({
+        'pickupLatitude': pickupLatitude,
+        'pickupLongitude': pickupLongitude,
+        'dropoffLatitude': dropoffLatitude,
+        'dropoffLongitude': dropoffLongitude,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return PricingEstimate.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
   }
 }

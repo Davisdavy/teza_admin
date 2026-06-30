@@ -6,6 +6,7 @@ import '../models/delivery.dart';
 import '../models/offer.dart';
 import '../models/history.dart';
 import '../models/ranked_rider.dart';
+import '../models/pricing.dart';
 import '../services/api_service.dart';
 
 class DashboardProvider extends ChangeNotifier {
@@ -30,7 +31,13 @@ class DashboardProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  PricingConfiguration? _pricingConfig;
+  PricingEstimate? _pricingEstimate;
+
   DashboardProvider(this._apiService);
+
+  PricingConfiguration? get pricingConfig => _pricingConfig;
+  PricingEstimate? get pricingEstimate => _pricingEstimate;
 
   List<UserAccount> get users => _users;
   List<RiderProfile> get riders => _riders;
@@ -296,6 +303,61 @@ class DashboardProvider extends ChangeNotifier {
       _deliveriesTotalPages = freshDeliveries.totalPages;
       _deliveriesIsLast = freshDeliveries.last;
       notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // --- Pricing Methods ---
+
+  Future<void> fetchPricingConfig() async {
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _pricingConfig = await _apiService.getPricingConfig();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+    }
+  }
+
+  Future<void> updatePricingConfig(PricingConfiguration config) async {
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      _pricingConfig = await _apiService.updatePricingConfig(config);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<PricingEstimate> estimatePricing({
+    required double pickupLatitude,
+    required double pickupLongitude,
+    required double dropoffLatitude,
+    required double dropoffLongitude,
+  }) async {
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final estimate = await _apiService.estimatePricing(
+        pickupLatitude: pickupLatitude,
+        pickupLongitude: pickupLongitude,
+        dropoffLatitude: dropoffLatitude,
+        dropoffLongitude: dropoffLongitude,
+      );
+      _pricingEstimate = estimate;
+      notifyListeners();
+      return estimate;
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');
       notifyListeners();
