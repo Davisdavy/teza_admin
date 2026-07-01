@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/pricing.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/google_place_autocomplete.dart';
 
 class PricingPane extends StatefulWidget {
   const PricingPane({super.key});
@@ -28,10 +29,12 @@ class _PricingPaneState extends State<PricingPane> {
 
   // Calculator inputs
   final _calcFormKey = GlobalKey<FormState>();
-  final _pickupLatController = TextEditingController(text: '-1.2833');
-  final _pickupLngController = TextEditingController(text: '36.8167');
-  final _dropoffLatController = TextEditingController(text: '-1.2933');
-  final _dropoffLngController = TextEditingController(text: '36.8267');
+  final _pickupAddressController = TextEditingController();
+  final _dropoffAddressController = TextEditingController();
+  final _pickupLatController = TextEditingController();
+  final _pickupLngController = TextEditingController();
+  final _dropoffLatController = TextEditingController();
+  final _dropoffLngController = TextEditingController();
 
   PricingEstimate? _calcResult;
   bool _isCalculating = false;
@@ -80,6 +83,8 @@ class _PricingPaneState extends State<PricingPane> {
     _peakMultiplierController.dispose();
     _weekendMultiplierController.dispose();
     _nightMultiplierController.dispose();
+    _pickupAddressController.dispose();
+    _dropoffAddressController.dispose();
     _pickupLatController.dispose();
     _pickupLngController.dispose();
     _dropoffLatController.dispose();
@@ -432,7 +437,7 @@ class _PricingPaneState extends State<PricingPane> {
             style: GoogleFonts.outfit(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
           ),
           Text(
-            'Input pickup and dropoff coordinate coordinates to retrieve a live pricing breakdown calculation.',
+            'Search for pickup and dropoff locations to retrieve a live pricing breakdown calculation.',
             style: GoogleFonts.inter(color: Colors.white38, fontSize: 12),
           ),
           const SizedBox(height: 24),
@@ -442,81 +447,84 @@ class _PricingPaneState extends State<PricingPane> {
             children: [
               Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Pickup Location Coordinates', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _pickupLatController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Latitude'),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _pickupLngController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Longitude'),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                      ],
+                    Text('Pickup Location', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 10),
+                    GooglePlaceAutocomplete(
+                      hint: 'Search pickup place...',
+                      initialValue: _pickupAddressController.text.isNotEmpty ? _pickupAddressController.text : null,
+                      onSelected: (place) {
+                        setState(() {
+                          _pickupAddressController.text = place.placeName;
+                          final loc = place.center;
+                          if (loc != null) {
+                            _pickupLatController.text = loc.lat.toString();
+                            _pickupLngController.text = loc.long.toString();
+                          }
+                        });
+                      },
                     ),
+                    if (_pickupLatController.text.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Coordinates: ${_pickupLatController.text}, ${_pickupLngController.text}',
+                        style: GoogleFonts.inter(color: Colors.white30, fontSize: 11),
+                      ),
+                    ],
                     const SizedBox(height: 24),
-                    Text('Dropoff Location Coordinates', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: _dropoffLatController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Latitude'),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: TextFormField(
-                            controller: _dropoffLngController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: _inputDecoration('Longitude'),
-                            keyboardType: TextInputType.number,
-                            validator: (val) => val == null || val.isEmpty ? 'Required' : null,
-                          ),
-                        ),
-                      ],
+
+                    Text('Dropoff Location', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500)),
+                    const SizedBox(height: 10),
+                    GooglePlaceAutocomplete(
+                      hint: 'Search dropoff place...',
+                      initialValue: _dropoffAddressController.text.isNotEmpty ? _dropoffAddressController.text : null,
+                      onSelected: (place) {
+                        setState(() {
+                          _dropoffAddressController.text = place.placeName;
+                          final loc = place.center;
+                          if (loc != null) {
+                            _dropoffLatController.text = loc.lat.toString();
+                            _dropoffLngController.text = loc.long.toString();
+                          }
+                        });
+                      },
                     ),
+                    if (_dropoffLatController.text.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        'Coordinates: ${_dropoffLatController.text}, ${_dropoffLngController.text}',
+                        style: GoogleFonts.inter(color: Colors.white30, fontSize: 11),
+                      ),
+                    ],
+
                     const SizedBox(height: 32),
                     ElevatedButton(
                       onPressed: _isCalculating
                           ? null
                           : () async {
-                              if (_calcFormKey.currentState!.validate()) {
+                              if (_pickupLatController.text.isEmpty || _dropoffLatController.text.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Please search and select both pickup and dropoff locations')),
+                                );
+                                return;
+                              }
+                              setState(() {
+                                _isCalculating = true;
+                                _calcResult = null;
+                              });
+                              try {
+                                final result = await dashboard.estimatePricing(
+                                  pickupLatitude: double.parse(_pickupLatController.text),
+                                  pickupLongitude: double.parse(_pickupLngController.text),
+                                  dropoffLatitude: double.parse(_dropoffLatController.text),
+                                  dropoffLongitude: double.parse(_dropoffLngController.text),
+                                );
                                 setState(() {
-                                  _isCalculating = true;
-                                  _calcResult = null;
+                                  _calcResult = result;
                                 });
-                                try {
-                                  final result = await dashboard.estimatePricing(
-                                    pickupLatitude: double.parse(_pickupLatController.text),
-                                    pickupLongitude: double.parse(_pickupLngController.text),
-                                    dropoffLatitude: double.parse(_dropoffLatController.text),
-                                    dropoffLongitude: double.parse(_dropoffLngController.text),
-                                  );
-                                  setState(() {
-                                    _calcResult = result;
-                                  });
-                                } catch (_) {} finally {
-                                  setState(() => _isCalculating = false);
-                                }
+                              } catch (_) {} finally {
+                                setState(() => _isCalculating = false);
                               }
                             },
                       style: ElevatedButton.styleFrom(
@@ -550,7 +558,7 @@ class _PricingPaneState extends State<PricingPane> {
                         ),
                         child: Center(
                           child: Text(
-                            'Click Calculate to see estimate results',
+                            'Select locations and click Calculate to see results',
                             style: GoogleFonts.inter(color: Colors.white24, fontSize: 13),
                           ),
                         ),
