@@ -81,7 +81,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               backgroundColor: const Color(0xFF111122),
               elevation: 0,
               title: Text(
-                _titles[_selectedIndex],
+                _activeTitle,
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -220,6 +220,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildSidebarItem(2, 'Riders', Icons.two_wheeler, isMobile),
                   _buildSidebarItem(3, 'Merchants', Icons.storefront, isMobile),
                   _buildSidebarItem(5, 'Pricing Engine', Icons.calculate_outlined, isMobile),
+                ] else ...[
+                  _buildSidebarItem(5, 'Cost Estimator', Icons.calculate_outlined, isMobile),
                 ],
                 _buildSidebarItem(4, 'Deliveries', Icons.local_shipping_outlined, isMobile),
               ],
@@ -375,7 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           // Active title
           Text(
-            _titles[_selectedIndex],
+            _activeTitle,
             style: GoogleFonts.outfit(
               fontSize: 22,
               fontWeight: FontWeight.w700,
@@ -437,5 +439,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  String get _activeTitle {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (_selectedIndex == 5 && auth.isMerchant) {
+      return 'Delivery Cost Estimator';
+    }
+    return _titles[_selectedIndex];
   }
 }

@@ -45,14 +45,21 @@ class _PricingPaneState extends State<PricingPane> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() => _isConfigLoading = true);
-      Provider.of<DashboardProvider>(context, listen: false).fetchPricingConfig().then((_) {
-        _loadConfigToControllers();
-      }).whenComplete(() {
-        if (mounted) {
-          setState(() => _isConfigLoading = false);
-        }
-      });
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      if (auth.isMerchant) {
+        setState(() {
+          _activeTab = 1;
+        });
+      } else {
+        setState(() => _isConfigLoading = true);
+        Provider.of<DashboardProvider>(context, listen: false).fetchPricingConfig().then((_) {
+          _loadConfigToControllers();
+        }).whenComplete(() {
+          if (mounted) {
+            setState(() => _isConfigLoading = false);
+          }
+        });
+      }
     });
   }
 
@@ -124,6 +131,8 @@ class _PricingPaneState extends State<PricingPane> {
     final auth = Provider.of<AuthProvider>(context);
     final isSuperAdmin = auth.isSuperAdmin;
 
+    final isMerchant = auth.isMerchant;
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF111122),
@@ -142,20 +151,21 @@ class _PricingPaneState extends State<PricingPane> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Pricing Engine Settings',
+                isMerchant ? 'Delivery Cost Estimator' : 'Pricing Engine Settings',
                 style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
-              Row(
-                children: [
-                  _buildTabButton(0, 'Configure Settings', Icons.settings_outlined),
-                  const SizedBox(width: 12),
-                  _buildTabButton(1, 'Fee Estimator Tool', Icons.calculate_outlined),
-                ],
-              ),
+              if (!isMerchant)
+                Row(
+                  children: [
+                    _buildTabButton(0, 'Configure Settings', Icons.settings_outlined),
+                    const SizedBox(width: 12),
+                    _buildTabButton(1, 'Fee Estimator Tool', Icons.calculate_outlined),
+                  ],
+                ),
             ],
           ),
           const SizedBox(height: 28),
