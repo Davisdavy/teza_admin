@@ -224,6 +224,17 @@ class ApiService {
     }
   }
 
+  Future<List<int>> getDeliveriesExport(String format) async {
+    final url = Uri.parse('$baseUrl/api/delivery/export/$format');
+    final response = await http.get(url, headers: _headers());
+
+    if (response.statusCode == 200) {
+      return response.bodyBytes;
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
   Future<List<Delivery>> getMerchantDeliveries() async {
     final url = Uri.parse('$baseUrl/api/delivery/merchant');
     final response = await http.get(url, headers: _headers());

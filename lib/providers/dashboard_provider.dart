@@ -364,4 +364,22 @@ class DashboardProvider extends ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<List<int>> exportDeliveries(String format) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final bytes = await _apiService.getDeliveriesExport(format);
+      _isLoading = false;
+      notifyListeners();
+      return bytes;
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
 }
