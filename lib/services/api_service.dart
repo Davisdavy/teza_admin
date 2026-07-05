@@ -226,7 +226,9 @@ class ApiService {
 
   Future<List<int>> getDeliveriesExport(String format) async {
     final url = Uri.parse('$baseUrl/api/delivery/export/$format');
-    final response = await http.get(url, headers: _headers());
+    final headers = _headers();
+    headers.remove('Accept');
+    final response = await http.get(url, headers: headers);
 
     if (response.statusCode == 200) {
       return response.bodyBytes;
