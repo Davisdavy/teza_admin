@@ -1,3 +1,6 @@
+import 'dart:convert' show base64Encode, jsonEncode;
+import 'dart:js' as js;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -188,6 +191,50 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6C63FF),
                         foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          final bytes = await dashboardProvider.exportDeliveries('csv');
+                          _triggerFileDownload(bytes, 'deliveries.csv', 'text/csv');
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to export CSV: $e')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.download, size: 16, color: Colors.white70),
+                      label: const Text('Export CSV', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          final bytes = await dashboardProvider.exportDeliveries('excel');
+                          _triggerFileDownload(bytes, 'deliveries.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to export Excel: $e')),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.table_chart, size: 16, color: Colors.white70),
+                      label: const Text('Export Excel', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.white.withOpacity(0.12)),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -1562,6 +1609,30 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
         borderSide: const BorderSide(color: Color(0xFFFF5252)),
       ),
     );
+  }
+
+  void _triggerFileDownload(List<int> bytes, String filename, String mimeType) {
+    if (kIsWeb) {
+      try {
+        js.context.callMethod('eval', [
+          '''
+          var blob = new Blob([new Uint8Array(${jsonEncode(bytes)})], {type: "$mimeType"});
+          var link = document.createElement("a");
+          link.href = window.URL.createObjectURL(blob);
+          link.download = "$filename";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          '''
+        ]);
+      } catch (e) {
+        debugPrint('Web download failed: $e');
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Export completed. Saved ${bytes.length} bytes.')),
+      );
+    }
   }
 }
 
