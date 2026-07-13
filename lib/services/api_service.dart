@@ -114,6 +114,25 @@ class ApiService {
     }
   }
 
+  Future<UserAccount> createUser(String email, String password, String role) async {
+    final url = Uri.parse('$baseUrl/api/users');
+    final response = await http.post(
+      url,
+      headers: _headers(),
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+        'role': role,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return UserAccount.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
   // --- Riders Endpoints ---
 
   Future<List<RiderProfile>> getRiders() async {

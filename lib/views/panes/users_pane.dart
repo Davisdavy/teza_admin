@@ -59,34 +59,59 @@ class _UsersPaneState extends State<UsersPane> {
                   color: Colors.white,
                 ),
               ),
-              // Search Input
-              SizedBox(
-                width: 300,
-                child: TextField(
-                  controller: _searchController,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                  onChanged: (val) {
-                    setState(() {
-                      _searchQuery = val;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search by email or role...',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
-                    prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 18),
-                    filled: true,
-                    fillColor: Colors.white.withOpacity(0.02),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+              Row(
+                children: [
+                  // Add User Button — SUPER_ADMIN only
+                  if (authProvider.isSuperAdmin) ...
+                    [
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                        label: Text(
+                          'Add User',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                        ),
+                        onPressed: () => _showCreateDialog(context, dashboardProvider),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6C63FF),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                  // Search Input
+                  SizedBox(
+                    width: 300,
+                    child: TextField(
+                      controller: _searchController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search by email or role...',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
+                        prefixIcon: Icon(Icons.search, color: Colors.white.withOpacity(0.4), size: 18),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.02),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -477,6 +502,174 @@ class _UsersPaneState extends State<UsersPane> {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showCreateDialog(BuildContext context, DashboardProvider provider) {
+    final emailController = TextEditingController();
+    final passwordController = TextEditingController();
+    String role = 'CUSTOMER';
+    bool isSubmitting = false;
+    bool obscurePassword = true;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF16162E),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: Colors.white.withOpacity(0.06)),
+              ),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF6C63FF).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.person_add_alt_1_rounded, color: Color(0xFF6C63FF), size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Create User Account',
+                    style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              content: SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Email Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. support@teza.local',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.02),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Password', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: obscurePassword,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Min. 6 characters',
+                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.02),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscurePassword ? Icons.visibility_off : Icons.visibility,
+                            color: Colors.white38,
+                            size: 18,
+                          ),
+                          onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text('System Role', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.02),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: role,
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF16162E),
+                          style: const TextStyle(color: Colors.white),
+                          items: ['SUPER_ADMIN', 'SUPPORT_ADMIN', 'MERCHANT', 'RIDER', 'CUSTOMER'].map((r) {
+                            return DropdownMenuItem<String>(
+                              value: r,
+                              child: Text(r),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setDialogState(() => role = val);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.of(context).pop(),
+                  child: Text('Cancel', style: GoogleFonts.inter(color: Colors.white38)),
+                ),
+                ElevatedButton.icon(
+                  icon: isSubmitting
+                      ? const SizedBox(
+                          width: 16, height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.check_rounded, size: 18),
+                  label: Text(
+                    isSubmitting ? 'Creating...' : 'Create User',
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final email = emailController.text.trim();
+                          final password = passwordController.text;
+                          if (email.isEmpty || password.isEmpty) return;
+                          setDialogState(() => isSubmitting = true);
+                          try {
+                            await provider.createUser(email, password, role);
+                            if (context.mounted) Navigator.of(context).pop();
+                          } catch (e) {
+                            setDialogState(() => isSubmitting = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6C63FF),
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
