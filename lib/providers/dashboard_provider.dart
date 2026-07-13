@@ -157,6 +157,18 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> createUser(String email, String password, String role) async {
+    try {
+      final newUser = await _apiService.createUser(email, password, role);
+      _users.add(newUser);
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   // --- Rider Operations ---
   Future<void> approveRider(String riderId) async {
     try {
