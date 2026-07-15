@@ -19,7 +19,7 @@ class ApiService {
       return '${Uri.base.scheme}://$host:8080';
     }
     
-    return 'http://localhost:8080';
+    return 'http://212.56.45.149/teza';
   }
   String? _token;
 
