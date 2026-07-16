@@ -646,14 +646,18 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Live Tracking Stats',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Text(
+                              'Live Tracking Stats',
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           if (_riderLocation != null)
                             Row(
                               children: [
@@ -757,12 +761,18 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
             label,
             style: GoogleFonts.inter(color: Colors.white54, fontSize: 13),
           ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              color: valueColor ?? Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: GoogleFonts.inter(
+                color: valueColor ?? Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           ),
         ],
