@@ -9,6 +9,7 @@ import '../../models/rider_location.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../services/api_service.dart';
+import '../../config/mapbox_config.dart';
 
 class LiveTrackingPane extends StatefulWidget {
   const LiveTrackingPane({super.key});
@@ -498,6 +499,90 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
           ),
           const SizedBox(height: 24),
 
+          // Live Map Card (Only shown if riderLocation != null)
+          if (_riderLocation != null) ...[
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF16162E),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.white.withOpacity(0.04)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Real-time Rider Movement Map 🗺️',
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        'Auto-fit Zoom (Rider, Pickup, Destination)',
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF8C84FF),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      children: [
+                        Image.network(
+                          _getStaticMapUrl(delivery),
+                          height: 350,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              height: 350,
+                              color: const Color(0xFF0F0F1E),
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6C63FF)),
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 350,
+                              color: const Color(0xFF0F0F1E),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.map_outlined, color: Colors.white24, size: 48),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Failed to load live map style',
+                                      style: GoogleFonts.inter(color: Colors.white38, fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
           // Live Tracker stats
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,14 +646,18 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Live Tracking Stats',
-                            style: GoogleFonts.outfit(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                          Expanded(
+                            child: Text(
+                              'Live Tracking Stats',
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.outfit(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
+                          const SizedBox(width: 8),
                           if (_riderLocation != null)
                             Row(
                               children: [
@@ -672,12 +761,18 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
             label,
             style: GoogleFonts.inter(color: Colors.white54, fontSize: 13),
           ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              color: valueColor ?? Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: GoogleFonts.inter(
+                color: valueColor ?? Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           ),
         ],
@@ -807,5 +902,43 @@ class _LiveTrackingPaneState extends State<LiveTrackingPane> {
       default:
         return step;
     }
+  }
+
+  String _getStaticMapUrl(Delivery delivery) {
+    if (_riderLocation == null) return '';
+
+    final riderLng = _riderLocation!.longitude;
+    final riderLat = _riderLocation!.latitude;
+    final pickupLng = delivery.pickupLongitude;
+    final pickupLat = delivery.pickupLatitude;
+    final dropoffLng = delivery.dropoffLongitude;
+    final dropoffLat = delivery.dropoffLatitude;
+
+    // Determine rider icon based on vehicle type
+    String riderIcon = 'marker';
+    if (_riderProfile != null) {
+      final vType = _riderProfile!.vehicleType.toLowerCase();
+      if (vType.contains('bike') || vType.contains('motor')) {
+        riderIcon = 'scooter';
+      } else if (vType.contains('bicycle') || vType.contains('cycle')) {
+        riderIcon = 'bicycle';
+      } else if (vType.contains('car')) {
+        riderIcon = 'car';
+      }
+    }
+
+    final List<String> overlays = [];
+    if (riderLng != 0.0 && riderLat != 0.0) {
+      overlays.add('pin-l-$riderIcon+6C63FF($riderLng,$riderLat)');
+    }
+    if (pickupLng != 0.0 && pickupLat != 0.0) {
+      overlays.add('pin-l-shop+FF9F43($pickupLng,$pickupLat)');
+    }
+    if (dropoffLng != 0.0 && dropoffLat != 0.0) {
+      overlays.add('pin-l-home+10AC84($dropoffLng,$dropoffLat)');
+    }
+    final overlayString = overlays.join(',');
+
+    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/$overlayString/auto/600x350@2x?access_token=$mapboxAccessToken';
   }
 }
