@@ -179,7 +179,7 @@ class _MerchantsPaneState extends State<MerchantsPane> {
                     itemBuilder: (context, idx) {
                       final merchant = filteredMerchants[idx];
                       final joinedDate = merchant.createdAt != null
-                          ? DateFormat('MMM d, yyyy').format(merchant.createdAt!)
+                          ? DateFormat('MMM d, yyyy').format(merchant.createdAt!.toLocal())
                           : 'N/A';
 
                       return Container(

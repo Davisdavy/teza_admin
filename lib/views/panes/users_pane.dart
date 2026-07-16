@@ -510,6 +510,9 @@ class _UsersPaneState extends State<UsersPane> {
   void _showCreateDialog(BuildContext context, DashboardProvider provider) {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
+    final businessNameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final addressController = TextEditingController();
     String role = 'CUSTOMER';
     bool isSubmitting = false;
     bool obscurePassword = true;
@@ -544,92 +547,160 @@ class _UsersPaneState extends State<UsersPane> {
               ),
               content: SizedBox(
                 width: 400,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Email Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. support@teza.local',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.02),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('Password', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: obscurePassword,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Min. 6 characters',
-                        hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
-                        filled: true,
-                        fillColor: Colors.white.withOpacity(0.02),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscurePassword ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.white38,
-                            size: 18,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Email Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. support@teza.local',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.02),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
                           ),
-                          onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text('System Role', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.02),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white.withOpacity(0.08)),
+                      const SizedBox(height: 16),
+                      Text('Password', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: obscurePassword,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Min. 6 characters',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                          filled: true,
+                          fillColor: Colors.white.withOpacity(0.02),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.white38,
+                              size: 18,
+                            ),
+                            onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                          ),
+                        ),
                       ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: role,
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF16162E),
+                      const SizedBox(height: 16),
+                      Text('System Role', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.02),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: role,
+                            isExpanded: true,
+                            dropdownColor: const Color(0xFF16162E),
+                            style: const TextStyle(color: Colors.white),
+                            items: ['SUPER_ADMIN', 'SUPPORT_ADMIN', 'MERCHANT', 'RIDER', 'CUSTOMER'].map((r) {
+                              return DropdownMenuItem<String>(
+                                value: r,
+                                child: Text(r),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              if (val != null) {
+                                setDialogState(() => role = val);
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      if (role == 'MERCHANT') ...[
+                        const SizedBox(height: 16),
+                        Text('Business Name', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: businessNameController,
                           style: const TextStyle(color: Colors.white),
-                          items: ['SUPER_ADMIN', 'SUPPORT_ADMIN', 'MERCHANT', 'RIDER', 'CUSTOMER'].map((r) {
-                            return DropdownMenuItem<String>(
-                              value: r,
-                              child: Text(r),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            if (val != null) {
-                              setDialogState(() => role = val);
-                            }
-                          },
+                          decoration: InputDecoration(
+                            hintText: 'e.g. Acme Deliveries',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.02),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
+                        const SizedBox(height: 16),
+                        Text('Business Phone Number', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: phoneController,
+                          keyboardType: TextInputType.phone,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'e.g. +254712345678',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.02),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text('Business Address', style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: addressController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'e.g. 1st Floor, Oasis Building, Nairobi',
+                            hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.02),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.08)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(color: Color(0xFF6C63FF)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -654,9 +725,27 @@ class _UsersPaneState extends State<UsersPane> {
                           final email = emailController.text.trim();
                           final password = passwordController.text;
                           if (email.isEmpty || password.isEmpty) return;
+
+                          if (role == 'MERCHANT' && businessNameController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Business Name is required for merchants'),
+                                backgroundColor: Color(0xFFFF5252),
+                              ),
+                            );
+                            return;
+                          }
+
                           setDialogState(() => isSubmitting = true);
                           try {
-                            await provider.createUser(email, password, role);
+                            await provider.createUser(
+                              email,
+                              password,
+                              role,
+                              businessName: role == 'MERCHANT' ? businessNameController.text.trim() : null,
+                              phoneNumber: role == 'MERCHANT' ? phoneController.text.trim() : null,
+                              address: role == 'MERCHANT' ? addressController.text.trim() : null,
+                            );
                             if (context.mounted) Navigator.of(context).pop();
                           } catch (e) {
                             setDialogState(() => isSubmitting = false);
