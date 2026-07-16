@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user.dart';
 import '../models/rider.dart';
+import '../models/rider_location.dart';
 import '../models/merchant.dart';
 import '../models/delivery.dart';
 import '../models/offer.dart';
@@ -171,6 +172,28 @@ class ApiService {
     final response = await http.delete(url, headers: _headers());
 
     if (response.statusCode != 204 && response.statusCode != 200) {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  Future<RiderProfile> getRiderProfile(String riderId) async {
+    final url = Uri.parse('$baseUrl/api/rider/profile/$riderId');
+    final response = await http.get(url, headers: _headers());
+
+    if (response.statusCode == 200) {
+      return RiderProfile.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  Future<RiderLocation> getRiderLocation(String riderId) async {
+    final url = Uri.parse('$baseUrl/api/rider/profile/$riderId/location');
+    final response = await http.get(url, headers: _headers());
+
+    if (response.statusCode == 200) {
+      return RiderLocation.fromJson(jsonDecode(response.body));
+    } else {
       throw Exception(_parseError(response));
     }
   }

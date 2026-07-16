@@ -419,7 +419,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
                       }
 
                       final formattedDate = delivery.createdAt != null
-                          ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!)
+                          ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!.toLocal())
                           : 'N/A';
 
                       return InkWell(
@@ -614,7 +614,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
 
   Widget _buildMobileDeliveryCard(BuildContext context, DashboardProvider provider, Delivery delivery, bool canDelete) {
     final formattedDate = delivery.createdAt != null
-        ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!)
+        ? DateFormat('MMM d, HH:mm').format(delivery.createdAt!.toLocal())
         : 'N/A';
     return Card(
       color: const Color(0xFF16162E),
@@ -1125,7 +1125,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
       itemBuilder: (context, idx) {
         final log = logs[idx];
         final timeStr = log.createdAt != null
-            ? DateFormat('MMM d, yyyy HH:mm').format(log.createdAt)
+            ? DateFormat('MMM d, yyyy HH:mm').format(log.createdAt.toLocal())
             : 'N/A';
         return ListTile(
           dense: true,
@@ -1160,7 +1160,7 @@ class _DeliveriesPaneState extends State<DeliveriesPane> {
       itemBuilder: (context, idx) {
         final offer = offers[idx];
         final expiresStr = offer.expiresAt != null
-            ? DateFormat('HH:mm:ss').format(offer.expiresAt)
+            ? DateFormat('HH:mm:ss').format(offer.expiresAt.toLocal())
             : 'N/A';
         return ListTile(
           dense: true,

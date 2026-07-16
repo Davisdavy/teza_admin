@@ -10,6 +10,7 @@ import 'panes/riders_pane.dart';
 import 'panes/merchants_pane.dart';
 import 'panes/deliveries_pane.dart';
 import 'panes/pricing_pane.dart';
+import 'panes/live_tracking_pane.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -46,6 +47,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     'Merchant Directory',
     'Deliveries & Dispatch Control',
     'Pricing Scheme & Estimation',
+    'Live Delivery Tracking',
   ];
 
   @override
@@ -70,6 +72,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       const MerchantsPane(),
       const DeliveriesPane(),
       const PricingPane(),
+      const LiveTrackingPane(),
     ];
 
     final isMobile = MediaQuery.of(context).size.width < 900;
@@ -222,6 +225,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildSidebarItem(5, 'Pricing Engine', Icons.calculate_outlined, isMobile),
                 ] else ...[
                   _buildSidebarItem(5, 'Cost Estimator', Icons.calculate_outlined, isMobile),
+                  _buildSidebarItem(6, 'Live Tracking', Icons.explore_outlined, isMobile),
                 ],
                 _buildSidebarItem(4, 'Deliveries', Icons.local_shipping_outlined, isMobile),
               ],
