@@ -157,10 +157,27 @@ class DashboardProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createUser(String email, String password, String role) async {
+  Future<void> createUser(
+    String email,
+    String password,
+    String role, {
+    String? businessName,
+    String? phoneNumber,
+    String? address,
+  }) async {
     try {
       final newUser = await _apiService.createUser(email, password, role);
       _users.add(newUser);
+
+      if (role == 'MERCHANT' && businessName != null) {
+        await _apiService.updateMerchantProfile(
+          newUser.id,
+          businessName,
+          phoneNumber ?? '0000000000',
+          address ?? 'Address Pending',
+        );
+      }
+
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString().replaceFirst('Exception: ', '');

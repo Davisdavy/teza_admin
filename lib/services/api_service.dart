@@ -19,7 +19,7 @@ class ApiService {
       return '${Uri.base.scheme}://$host:8080';
     }
     
-    return 'http://212.56.45.149/teza';
+    return 'http://localhost:8080';
   }
   String? _token;
 
@@ -196,6 +196,23 @@ class ApiService {
     final response = await http.delete(url, headers: _headers());
 
     if (response.statusCode != 204 && response.statusCode != 200) {
+      throw Exception(_parseError(response));
+    }
+  }
+
+  Future<void> updateMerchantProfile(String userId, String businessName, String phoneNumber, String address) async {
+    final url = Uri.parse('$baseUrl/api/merchant/profile/user/$userId');
+    final response = await http.put(
+      url,
+      headers: _headers(authenticated: true),
+      body: jsonEncode({
+        'businessName': businessName,
+        'phoneNumber': phoneNumber,
+        'address': address,
+      }),
+    );
+
+    if (response.statusCode != 200) {
       throw Exception(_parseError(response));
     }
   }
